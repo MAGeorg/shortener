@@ -71,7 +71,7 @@ func commonHandle(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		u := r.URL.String()[1:]
 
-		url, err := getOriginURL(u)
+		urlOrig, err := getOriginURL(u)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			break
@@ -79,7 +79,7 @@ func commonHandle(w http.ResponseWriter, r *http.Request) {
 
 		// формирование положительного ответа
 		w.Header().Set("Content-Type", "text/plain")
-		w.Header().Set("Location", url)
+		w.Header().Set("Location", urlOrig)
 		w.WriteHeader(http.StatusTemporaryRedirect)
 
 	default:

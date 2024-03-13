@@ -50,7 +50,10 @@ func getOriginURL(s string) (string, error) {
 	return "", fmt.Errorf("not found hash")
 }
 
-func commonHandle(w http.ResponseWriter, r *http.Request) {
+// CommonHandler обрабатывает запрос в зависимости от метода
+func CommonHandle(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+
 	switch r.Method {
 	case http.MethodPost:
 		defer r.Body.Close()
@@ -64,7 +67,6 @@ func commonHandle(w http.ResponseWriter, r *http.Request) {
 		urlHash := fmt.Sprintf("http://%s/%s", r.Host, strconv.FormatUint(uint64(generateURL(string(urlStr))), 10))
 
 		// формирование положительного ответа
-		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(urlHash))
 
@@ -78,7 +80,6 @@ func commonHandle(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// формирование положительного ответа
-		w.Header().Set("Content-Type", "text/plain")
 		w.Header().Set("Location", urlOrig)
 		w.WriteHeader(http.StatusTemporaryRedirect)
 
@@ -89,7 +90,7 @@ func commonHandle(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", commonHandle)
+	mux.HandleFunc("/", CommonHandle)
 
 	if err := http.ListenAndServe(`:8080`, mux); err != nil {
 		panic(err)

@@ -21,7 +21,7 @@ func getHash(s string) uint32 {
 
 func checkURL(s string) bool {
 	u, err := url.Parse(s)
-	return err != nil && u.Host != "" && u.Scheme != ""
+	return err != nil || u.Host != "" || u.Scheme != ""
 }
 
 // генерация сокращенного URL
@@ -56,7 +56,7 @@ func commonHandle(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 		urlStr, err := io.ReadAll(r.Body)
 
-		if err != nil && !checkURL(string(urlStr)) {
+		if err != nil || !checkURL(string(urlStr)) {
 			w.WriteHeader(http.StatusNotFound)
 			break
 		}

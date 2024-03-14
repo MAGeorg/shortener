@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+	config.Parse()
+
 	r := chi.NewRouter()
 	r.Post("/", handlers.CreateHashURL)
 	r.Get("/{id}", handlers.GetOriginURL)

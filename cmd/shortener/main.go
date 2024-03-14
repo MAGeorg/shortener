@@ -1,9 +1,12 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
+	"github.com/MAGeorg/shortener.git/internal/config"
 	"github.com/MAGeorg/shortener.git/internal/handlers"
+
 	"github.com/go-chi/chi/v5"
 )
 
@@ -12,7 +15,8 @@ func main() {
 	r.Post("/", handlers.CreateHashURL)
 	r.Get("/{id}", handlers.GetOriginURL)
 
-	if err := http.ListenAndServe(`:8080`, r); err != nil {
+	log.Printf("Server fun on %s address ...", config.Conf.Address)
+	if err := http.ListenAndServe(config.Conf.Address, r); err != nil {
 		panic(err)
 	}
 }

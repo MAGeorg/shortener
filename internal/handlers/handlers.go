@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/MAGeorg/shortener.git/internal/config"
 	"github.com/MAGeorg/shortener.git/internal/utils"
 )
 
@@ -30,7 +31,7 @@ func CreateHashURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	urlHash := fmt.Sprintf("http://%s/%s", r.Host, strconv.FormatUint(uint64(generateURL(string(urlStr))), 10))
+	urlHash := fmt.Sprintf("%s/%s", config.Conf.BaseAddress, strconv.FormatUint(uint64(generateURL(string(urlStr))), 10))
 
 	// формирование положительного ответа
 	w.WriteHeader(http.StatusCreated)

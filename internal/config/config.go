@@ -12,7 +12,7 @@ type Config struct {
 
 var Conf Config
 
-func init() {
+func Parse() {
 	if os.Getenv("SERVER_ADDRESS") != "" || os.Getenv("BASE_URL") != "" {
 		Conf.Address = os.Getenv("SERVER_ADDRESS")
 		Conf.BaseAddress = os.Getenv("BASE_URL")

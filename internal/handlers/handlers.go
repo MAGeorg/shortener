@@ -1,26 +1,24 @@
 package handlers
 
 import (
-	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 
-	"github.com/MAGeorg/shortener.git/internal/config"
+	"github.com/MAGeorg/shortener.git/internal/appcontext"
 	"github.com/MAGeorg/shortener.git/internal/utils"
 )
 
-var savedURL = map[uint32]string{}
+type AppHandler struct {
+	ctx *appcontext.AppContext
+	f   func(ctx *appcontext.AppContext, w http.ResponseWriter, r *http.Request)
+}
 
-// генерация сокращенного URL
-func generateURL(s string) uint32 {
-	h := utils.GetHash(s)
-	savedURL[h] = s
-	return h
+func (h AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.f(h.ctx, w, r)
 }
 
 // обработка POST запроса
-func CreateHashURL(w http.ResponseWriter, r *http.Request) {
+func CreateHashURL(ctx *appcontext.AppContext, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 
 	defer r.Body.Close()
@@ -31,7 +29,12 @@ func CreateHashURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	urlHash := fmt.Sprintf("%s/%s", config.Conf.BaseAddress, strconv.FormatUint(uint64(generateURL(string(urlStr))), 10))
+	urlHash, err := ctx.StorageURL.AddURL(ctx.Cfg.BaseAddress, string(urlStr))
+
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 
 	// формирование положительного ответа
 	w.WriteHeader(http.StatusCreated)
@@ -39,26 +42,21 @@ func CreateHashURL(w http.ResponseWriter, r *http.Request) {
 }
 
 // обработка GET запросв
-func GetOriginURL(w http.ResponseWriter, r *http.Request) {
+func GetOriginURL(ctx *appcontext.AppContext, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 
-	s := r.URL.String()[1:]
+	if len(r.URL.String()) < 2 {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 
-	// преобразование строки с HashURL в uint32
-	urlHash, err := strconv.ParseUint(s, 10, 32)
+	url, err := ctx.StorageURL.GetOriginURL(r.URL.String()[1:])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	// поиск оригинального адреса по HashURL
-	urlOrig, ok := savedURL[uint32(urlHash)]
-	if !ok {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
 	// формирование положительного ответа
-	w.Header().Set("Location", urlOrig)
+	w.Header().Set("Location", url)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }

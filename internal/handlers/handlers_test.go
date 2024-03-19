@@ -7,6 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/MAGeorg/shortener.git/internal/appcontext"
+	"github.com/MAGeorg/shortener.git/internal/config"
+	"github.com/MAGeorg/shortener.git/internal/storage"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -75,15 +78,25 @@ func TestCreateHashURL(t *testing.T) {
 	// так как будем использовать много assert заведем свой Assertions object
 	asserts := assert.New(t)
 
+	// инициализация хранилища
+	storURL := storage.NewStorageURL()
+
+	// инициализаниция конфига
+	cfg := config.NewConfig()
+	config.Parse(cfg)
+
+	// инициализация контекста
+	appContext := appcontext.NewAppContext(*cfg, storURL)
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-
 			r := httptest.NewRequest(test.req.method, "/", strings.NewReader(test.req.body))
 
 			// заполняем необходимые поля и выставляем ResponseRecorder для записи ответа сервера
 			r.Header.Set("Content-Type", test.req.contentType)
 			w := httptest.NewRecorder()
-			CreateHashURL(w, r)
+
+			CreateHashURL(appContext, w, r)
 
 			result := w.Result()
 			defer result.Body.Close()
@@ -174,6 +187,15 @@ func TestGetOriginURL(t *testing.T) {
 	// так как будем использовать много assert заведем свой Assertions object
 	asserts := assert.New(t)
 
+	// инициализация хранилища
+	storURL := storage.NewStorageURL()
+
+	// инициализаниция конфига
+	cfg := config.NewConfig()
+
+	// инициализация контекста
+	appContext := appcontext.NewAppContext(*cfg, storURL)
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			var r *http.Request
@@ -182,12 +204,12 @@ func TestGetOriginURL(t *testing.T) {
 			if test.req.method == http.MethodGet {
 				r = httptest.NewRequest(test.req.method, fmt.Sprintf("/%s", test.req.hashURL), strings.NewReader(""))
 				r.Header.Set("Content-Type", test.req.contentType)
-				GetOriginURL(w, r)
+				GetOriginURL(appContext, w, r)
 			} else {
 				// выполнение теста с запросом CreateHashURL необходимо для создания HashURL
 				r = httptest.NewRequest(test.req.method, "/", strings.NewReader(test.req.body))
 				r.Header.Set("Content-Type", test.req.contentType)
-				CreateHashURL(w, r)
+				CreateHashURL(appContext, w, r)
 			}
 
 			result := w.Result()

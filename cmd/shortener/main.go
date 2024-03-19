@@ -1,24 +1,23 @@
 package main
 
 import (
-	"log"
-	"net/http"
-
+	"github.com/MAGeorg/shortener.git/internal/appcontext"
 	"github.com/MAGeorg/shortener.git/internal/config"
 	"github.com/MAGeorg/shortener.git/internal/handlers"
-
-	"github.com/go-chi/chi/v5"
+	"github.com/MAGeorg/shortener.git/internal/storage"
 )
 
 func main() {
-	config.Parse()
+	// парсинг конфига
+	cfg := config.NewConfig()
+	config.Parse(cfg)
 
-	r := chi.NewRouter()
-	r.Post("/", handlers.CreateHashURL)
-	r.Get("/{id}", handlers.GetOriginURL)
+	// инициализация хранилища
+	storURL := storage.NewStorageURL()
 
-	log.Printf("Server fun on %s address ...", config.Conf.Address)
-	if err := http.ListenAndServe(config.Conf.Address, r); err != nil {
-		panic(err)
-	}
+	// инициализация контекста
+	appContext := appcontext.NewAppContext(*cfg, storURL)
+
+	// запуск сервера
+	handlers.RunServer(appContext)
 }

@@ -33,7 +33,11 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 
 	// формирование положительного ответа
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(urlHash))
+	_, err = w.Write([]byte(urlHash))
+	if err != nil {
+		// ошибка при записи ответа в Body, возращаем 500
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 // обработка GET запросв

@@ -1,17 +1,17 @@
-package appcontext
+package appdata
 
 import (
 	"github.com/MAGeorg/shortener.git/internal/config"
 	"github.com/MAGeorg/shortener.git/internal/storage"
 )
 
-type AppContext struct {
+type AppData struct {
 	Cfg        config.Config
 	StorageURL *storage.StorageURL
 }
 
-func NewAppContext(cfg config.Config, strg *storage.StorageURL) *AppContext {
-	return &AppContext{
+func NewAppData(cfg config.Config, strg *storage.StorageURL) *AppData {
+	return &AppData{
 		Cfg:        cfg,
 		StorageURL: strg,
 	}

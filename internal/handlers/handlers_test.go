@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/MAGeorg/shortener.git/internal/appcontext"
+	"github.com/MAGeorg/shortener.git/internal/appdata"
 	"github.com/MAGeorg/shortener.git/internal/config"
 	"github.com/MAGeorg/shortener.git/internal/storage"
 	"github.com/stretchr/testify/assert"
@@ -86,7 +86,8 @@ func TestCreateHashURL(t *testing.T) {
 	config.Parse(cfg)
 
 	// инициализация контекста
-	appContext := appcontext.NewAppContext(*cfg, storURL)
+	appContext := appdata.NewAppData(*cfg, storURL)
+	h := AppHandler{appContext}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -96,7 +97,7 @@ func TestCreateHashURL(t *testing.T) {
 			r.Header.Set("Content-Type", test.req.contentType)
 			w := httptest.NewRecorder()
 
-			CreateHashURL(appContext, w, r)
+			h.CreateHashURL(w, r)
 
 			result := w.Result()
 			defer result.Body.Close()
@@ -194,7 +195,8 @@ func TestGetOriginURL(t *testing.T) {
 	cfg := config.NewConfig()
 
 	// инициализация контекста
-	appContext := appcontext.NewAppContext(*cfg, storURL)
+	appContext := appdata.NewAppData(*cfg, storURL)
+	h := AppHandler{appContext}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -204,12 +206,12 @@ func TestGetOriginURL(t *testing.T) {
 			if test.req.method == http.MethodGet {
 				r = httptest.NewRequest(test.req.method, fmt.Sprintf("/%s", test.req.hashURL), strings.NewReader(""))
 				r.Header.Set("Content-Type", test.req.contentType)
-				GetOriginURL(appContext, w, r)
+				h.GetOriginURL(w, r)
 			} else {
 				// выполнение теста с запросом CreateHashURL необходимо для создания HashURL
 				r = httptest.NewRequest(test.req.method, "/", strings.NewReader(test.req.body))
 				r.Header.Set("Content-Type", test.req.contentType)
-				CreateHashURL(appContext, w, r)
+				h.CreateHashURL(w, r)
 			}
 
 			result := w.Result()

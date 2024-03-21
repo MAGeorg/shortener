@@ -10,10 +10,6 @@ type Config struct {
 	BaseAddress string
 }
 
-func (c *Config) GetBaseAddress() string {
-	return c.BaseAddress
-}
-
 func NewConfig() *Config {
 	return &Config{}
 }

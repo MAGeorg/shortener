@@ -4,21 +4,16 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/MAGeorg/shortener.git/internal/appcontext"
+	"github.com/MAGeorg/shortener.git/internal/appdata"
 	"github.com/MAGeorg/shortener.git/internal/utils"
 )
 
 type AppHandler struct {
-	ctx *appcontext.AppContext
-	f   func(ctx *appcontext.AppContext, w http.ResponseWriter, r *http.Request)
-}
-
-func (h AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.f(h.ctx, w, r)
+	a *appdata.AppData
 }
 
 // обработка POST запроса
-func CreateHashURL(ctx *appcontext.AppContext, w http.ResponseWriter, r *http.Request) {
+func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 
 	defer r.Body.Close()
@@ -29,7 +24,7 @@ func CreateHashURL(ctx *appcontext.AppContext, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	urlHash, err := ctx.StorageURL.AddURL(ctx.Cfg.BaseAddress, string(urlStr))
+	urlHash, err := h.a.StorageURL.AddURL(h.a.Cfg.BaseAddress, string(urlStr))
 
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -42,7 +37,7 @@ func CreateHashURL(ctx *appcontext.AppContext, w http.ResponseWriter, r *http.Re
 }
 
 // обработка GET запросв
-func GetOriginURL(ctx *appcontext.AppContext, w http.ResponseWriter, r *http.Request) {
+func (h *AppHandler) GetOriginURL(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 
 	if len(r.URL.String()) < 2 {
@@ -50,7 +45,7 @@ func GetOriginURL(ctx *appcontext.AppContext, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	url, err := ctx.StorageURL.GetOriginURL(r.URL.String()[1:])
+	url, err := h.a.StorageURL.GetOriginURL(r.URL.String()[1:])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return

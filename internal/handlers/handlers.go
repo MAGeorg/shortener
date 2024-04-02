@@ -24,7 +24,7 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	urlHash, err := h.a.StorageURL.AddURL(h.a.Cfg.BaseAddress, string(urlStr))
+	urlHash, err := h.a.StorageURL.AddURL(h.a.BaseAddress, string(urlStr))
 
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)

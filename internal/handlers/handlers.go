@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 
 	"github.com/MAGeorg/shortener.git/internal/appdata"
+	"github.com/MAGeorg/shortener.git/internal/models"
 	"github.com/MAGeorg/shortener.git/internal/utils"
 )
 
@@ -58,4 +60,47 @@ func (h *AppHandler) GetOriginURL(w http.ResponseWriter, r *http.Request) {
 	// формирование положительного ответа
 	w.Header().Set("Location", url)
 	w.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+// обработка POST запроса в формате JSON
+func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	defer r.Body.Close()
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	// преобразуем bytes (JSON) в map
+	var urlJSON models.OriginURL
+	if err := json.Unmarshal(data, &urlJSON); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if !utils.CheckURL(urlJSON.URL) {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	urlHash, err := h.a.StorageURL.AddURL(h.a.BaseAddress, urlJSON.URL)
+
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	// формирование положительного ответа
+	w.WriteHeader(http.StatusCreated)
+	resp, err := json.Marshal(models.AnswerHashURL{URL: urlHash})
+	if err != nil {
+		// ошибка при сериализации JSON объекта
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	if _, err := w.Write(resp); err != nil {
+		// ошибка при записи ответа в Body, возращаем 500
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }

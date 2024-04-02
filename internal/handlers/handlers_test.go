@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/MAGeorg/shortener.git/internal/appdata"
 	"github.com/MAGeorg/shortener.git/internal/config"
+	"github.com/MAGeorg/shortener.git/internal/models"
 	"github.com/MAGeorg/shortener.git/internal/storage"
 	"github.com/stretchr/testify/assert"
 )
@@ -227,6 +229,115 @@ func TestGetOriginURL(t *testing.T) {
 				asserts.Contains(w.Body.String(), test.want.body)
 			}
 
+		})
+	}
+}
+
+func TestCreateHashURLJSON(t *testing.T) {
+	// структура для хранения ожидаемых значений
+	type want struct {
+		code        int
+		body        string
+		contentType string
+	}
+
+	// структура для хранения данных для запросов
+	type request struct {
+		method      string
+		contentType string
+		body        string
+	}
+
+	tests := []struct {
+		name string
+		req  request
+		want want
+	}{
+		{
+			name: "positive POST JSON test 1",
+			req: request{
+				method:      http.MethodPost,
+				body:        "https://practicum.yandex.ru/",
+				contentType: "application/json",
+			},
+			want: want{
+				code:        http.StatusCreated,
+				body:        "/759827921",
+				contentType: "application/json",
+			},
+		},
+		{
+			name: "repeat positive POST JSON test 1",
+			req: request{
+				method:      http.MethodPost,
+				body:        "https://practicum.yandex.ru/",
+				contentType: "application/json",
+			},
+			want: want{
+				code:        http.StatusCreated,
+				body:        "/759827921",
+				contentType: "application/json",
+			},
+		},
+		{
+			name: "negative POST JSON test 1",
+			req: request{
+				method:      http.MethodPost,
+				body:        "",
+				contentType: "application/json",
+			},
+			want: want{
+				code:        http.StatusNotFound,
+				body:        "",
+				contentType: "application/json",
+			},
+		},
+	}
+
+	// так как будем использовать много assert заведем свой Assertions object
+	asserts := assert.New(t)
+
+	// инициализация хранилища
+	storURL := storage.NewStorageURL()
+
+	// инициализаниция конфига
+	cfg := config.NewConfig()
+
+	// инициализация контекста
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL)
+	h := AppHandler{appContext}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			data, err := json.Marshal(models.OriginURL{
+				URL: test.req.body,
+			})
+			if err != nil {
+				t.Errorf("error marshal data for request: %s\n", err.Error())
+			}
+
+			r := httptest.NewRequest(test.req.method, "/api/shorten", strings.NewReader(string(data)))
+
+			// заполняем необходимые поля и выставляем ResponseRecorder для записи ответа сервера
+			r.Header.Set("Content-Type", test.req.contentType)
+			w := httptest.NewRecorder()
+
+			h.CreateHashURLJSON(w, r)
+
+			result := w.Result()
+			defer result.Body.Close()
+
+			// делаем Unmarshal ответу от сервера
+			var ans models.AnswerHashURL
+			if len(w.Body.Bytes()) > 0 {
+				if err := json.Unmarshal(w.Body.Bytes(), &ans); err != nil {
+					t.Errorf("error unmarshal data from request: %s\n", err.Error())
+				}
+			}
+
+			asserts.Equal(test.want.contentType, result.Header.Get("Content-Type"))
+			asserts.Equal(test.want.code, result.StatusCode)
+			asserts.Contains(ans.URL, test.want.body)
 		})
 	}
 }

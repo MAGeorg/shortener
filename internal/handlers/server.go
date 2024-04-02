@@ -15,6 +15,7 @@ func RunServer(address string, a *appdata.AppData) error {
 	r := chi.NewRouter()
 
 	r.Method("POST", "/", logger.MiddlewareLog(http.HandlerFunc(h.CreateHashURL)))
+	r.Method("POST", "/api/shorten", logger.MiddlewareLog(http.HandlerFunc(h.CreateHashURLJSON)))
 	r.Method("GET", "/{id}", logger.MiddlewareLog(http.HandlerFunc(h.GetOriginURL)))
 
 	log.Printf("Server fun on %s address ...", address)

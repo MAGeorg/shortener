@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"net/http"
 	"time"
 
 	"go.uber.org/zap"
@@ -26,25 +25,4 @@ func NewLogger() error {
 	Sugar = *logger.Sugar()
 
 	return nil
-}
-
-type ResponseData struct {
-	status int
-	size   int
-}
-
-type loggingResponseWriter struct {
-	http.ResponseWriter
-	responseData *ResponseData
-}
-
-func (l *loggingResponseWriter) Write(b []byte) (int, error) {
-	size, err := l.ResponseWriter.Write(b)
-	l.responseData.size = size
-	return size, err
-}
-
-func (l *loggingResponseWriter) WriteHeader(statusCode int) {
-	l.ResponseWriter.WriteHeader(statusCode)
-	l.responseData.status = statusCode
 }

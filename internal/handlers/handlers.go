@@ -26,7 +26,7 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	urlHash, err := h.a.StorageURL.AddURL(h.a.BaseAddress, string(urlStr))
+	urlHash, hash, err := h.a.StorageURL.AddURL(h.a.BaseAddress, string(urlStr))
 
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -39,6 +39,15 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// ошибка при записи ответа в Body, возращаем 500
 		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	if h.a.LastID != -1 {
+		h.a.LastID += 1
+		err := h.a.Producer.WriteEvent(&models.Event{ID: h.a.LastID, HashURL: hash, URL: string(urlStr)})
+		if err != nil {
+			// ошибка при записи в файл, возращаем 500
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 	}
 }
 
@@ -85,7 +94,7 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	urlHash, err := h.a.StorageURL.AddURL(h.a.BaseAddress, urlJSON.URL)
+	urlHash, hash, err := h.a.StorageURL.AddURL(h.a.BaseAddress, urlJSON.URL)
 
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -102,5 +111,13 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(resp); err != nil {
 		// ошибка при записи ответа в Body, возращаем 500
 		w.WriteHeader(http.StatusInternalServerError)
+	}
+	if h.a.LastID != -1 {
+		h.a.LastID += 1
+		err := h.a.Producer.WriteEvent(&models.Event{ID: h.a.LastID, HashURL: hash, URL: urlJSON.URL})
+		if err != nil {
+			// ошибка при записи в файл, возращаем 500
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 	}
 }

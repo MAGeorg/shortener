@@ -87,8 +87,8 @@ func TestCreateHashURL(t *testing.T) {
 	cfg := config.NewConfig()
 	config.Parse(cfg)
 
-	// инициализация контекста
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL)
+	// инициализация контекста без записи в файл
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, -1, nil)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {
@@ -196,8 +196,8 @@ func TestGetOriginURL(t *testing.T) {
 	// инициализаниция конфига
 	cfg := config.NewConfig()
 
-	// инициализация контекста
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL)
+	// инициализация контекста без записи в файл
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, -1, nil)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {
@@ -303,8 +303,8 @@ func TestCreateHashURLJSON(t *testing.T) {
 	// инициализаниция конфига
 	cfg := config.NewConfig()
 
-	// инициализация контекста
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL)
+	// инициализация контекста без записи в файл
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, -1, nil)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {

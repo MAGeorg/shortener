@@ -10,6 +10,7 @@ import (
 
 	"github.com/MAGeorg/shortener.git/internal/appdata"
 	"github.com/MAGeorg/shortener.git/internal/config"
+	"github.com/MAGeorg/shortener.git/internal/logger"
 	"github.com/MAGeorg/shortener.git/internal/models"
 	"github.com/MAGeorg/shortener.git/internal/storage"
 	"github.com/stretchr/testify/assert"
@@ -80,6 +81,12 @@ func TestCreateHashURL(t *testing.T) {
 	// так как будем использовать много assert заведем свой Assertions object
 	asserts := assert.New(t)
 
+	// инициализация логгера
+	lg, err := logger.NewLogger()
+	if err != nil {
+		asserts.Empty(err)
+	}
+
 	// инициализация хранилища
 	storURL := storage.NewStorageURL()
 
@@ -88,7 +95,7 @@ func TestCreateHashURL(t *testing.T) {
 	config.Parse(cfg)
 
 	// инициализация контекста без записи в файл
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, -1, nil)
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, -1, lg, nil)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {
@@ -190,6 +197,12 @@ func TestGetOriginURL(t *testing.T) {
 	// так как будем использовать много assert заведем свой Assertions object
 	asserts := assert.New(t)
 
+	// инициализация логгера
+	lg, err := logger.NewLogger()
+	if err != nil {
+		asserts.Empty(err)
+	}
+
 	// инициализация хранилища
 	storURL := storage.NewStorageURL()
 
@@ -197,7 +210,7 @@ func TestGetOriginURL(t *testing.T) {
 	cfg := config.NewConfig()
 
 	// инициализация контекста без записи в файл
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, -1, nil)
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, -1, lg, nil)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {
@@ -297,6 +310,12 @@ func TestCreateHashURLJSON(t *testing.T) {
 	// так как будем использовать много assert заведем свой Assertions object
 	asserts := assert.New(t)
 
+	// инициализация логгера
+	lg, err := logger.NewLogger()
+	if err != nil {
+		asserts.Empty(err)
+	}
+
 	// инициализация хранилища
 	storURL := storage.NewStorageURL()
 
@@ -304,7 +323,7 @@ func TestCreateHashURLJSON(t *testing.T) {
 	cfg := config.NewConfig()
 
 	// инициализация контекста без записи в файл
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, -1, nil)
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, -1, lg, nil)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {
@@ -328,7 +347,7 @@ func TestCreateHashURLJSON(t *testing.T) {
 			defer result.Body.Close()
 
 			// делаем Unmarshal ответу от сервера
-			var ans models.AnswerHashURL
+			var ans models.ResponseHashURL
 			if len(w.Body.Bytes()) > 0 {
 				if err := json.Unmarshal(w.Body.Bytes(), &ans); err != nil {
 					t.Errorf("error unmarshal data from request: %s\n", err.Error())

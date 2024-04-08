@@ -43,7 +43,7 @@ func TestNewProducer(t *testing.T) {
 
 	for i, test := range tests {
 		t.Run(fmt.Sprintf("test-producer-%d", i), func(t *testing.T) {
-			err := producer.WriteEvent(&test)
+			err := producer.WriteEvent(&test.ID, &test)
 			asserts.Empty(err)
 		})
 	}
@@ -96,7 +96,7 @@ func TestNewConsumer(t *testing.T) {
 	producer, err := NewProducer(path)
 	asserts.Empty(err)
 	for _, test := range tests {
-		err := producer.WriteEvent(&test.write)
+		err := producer.WriteEvent(&test.write.ID, &test.write)
 		asserts.Empty(err)
 	}
 	err = producer.Close()
@@ -178,7 +178,7 @@ func TestRestoreData(t *testing.T) {
 	asserts.Empty(err)
 
 	for _, data := range dataWrite {
-		err := producer.WriteEvent(&data)
+		err := producer.WriteEvent(&data.ID, &data)
 		asserts.Empty(err)
 	}
 	err = producer.Close()

@@ -8,7 +8,7 @@ type OriginURL struct {
 
 // структура для обработки ответа POST запроса, содержащего
 // сокращенный URL в теле в формате JSON
-type AnswerHashURL struct {
+type ResponseHashURL struct {
 	URL string `json:"result"`
 }
 

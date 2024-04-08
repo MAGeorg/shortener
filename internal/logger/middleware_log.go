@@ -3,6 +3,8 @@ package logger
 import (
 	"net/http"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type ResponseData struct {
@@ -26,7 +28,17 @@ func (l *loggingResponseWriter) WriteHeader(statusCode int) {
 	l.responseData.status = statusCode
 }
 
-func MiddlewareLog(h http.HandlerFunc) http.Handler {
+type Logger struct {
+	logger *zap.SugaredLogger
+}
+
+func NewLogMiddleware(lg *zap.SugaredLogger) *Logger {
+	return &Logger{
+		logger: lg,
+	}
+}
+
+func (lg *Logger) LogMiddleware(h http.HandlerFunc) http.Handler {
 	logFunc := func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
@@ -44,7 +56,7 @@ func MiddlewareLog(h http.HandlerFunc) http.Handler {
 
 		duration := time.Since(start)
 
-		Sugar.Infoln(
+		lg.logger.Infoln(
 			"URI", r.RequestURI,
 			"method", r.Method,
 			"status", responseData.status,

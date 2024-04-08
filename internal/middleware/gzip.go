@@ -79,7 +79,7 @@ func checkReturnContent(uri string) bool {
 	return false
 }
 
-func MiddlewareGzip(h http.HandlerFunc) http.HandlerFunc {
+func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	gzipfunc := func(w http.ResponseWriter, r *http.Request) {
 		ow := w
 

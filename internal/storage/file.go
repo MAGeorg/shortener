@@ -85,7 +85,7 @@ func NewProducer(filename string) (*Producer, error) {
 	}, nil
 }
 
-func (p *Producer) WriteEvent(event *models.Event) error {
+func (p *Producer) WriteEvent(id *int, event *models.Event) error {
 	data, err := json.Marshal(&event)
 	if err != nil {
 		return err
@@ -99,6 +99,7 @@ func (p *Producer) WriteEvent(event *models.Event) error {
 		return err
 	}
 
+	*id += 1
 	return p.writer.Flush()
 }
 

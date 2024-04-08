@@ -42,8 +42,7 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.a.LastID != -1 {
-		h.a.LastID += 1
-		err := h.a.Producer.WriteEvent(&models.Event{ID: h.a.LastID, HashURL: hash, URL: string(urlStr)})
+		err := h.a.Producer.WriteEvent(&h.a.LastID, &models.Event{ID: h.a.LastID, HashURL: hash, URL: string(urlStr)})
 		if err != nil {
 			// ошибка при записи в файл, возращаем 500
 			w.WriteHeader(http.StatusInternalServerError)
@@ -103,7 +102,7 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 
 	// формирование положительного ответа
 	w.WriteHeader(http.StatusCreated)
-	resp, err := json.Marshal(models.AnswerHashURL{URL: urlHash})
+	resp, err := json.Marshal(models.ResponseHashURL{URL: urlHash})
 	if err != nil {
 		// ошибка при сериализации JSON объекта
 		w.WriteHeader(http.StatusInternalServerError)
@@ -113,8 +112,7 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	if h.a.LastID != -1 {
-		h.a.LastID += 1
-		err := h.a.Producer.WriteEvent(&models.Event{ID: h.a.LastID, HashURL: hash, URL: urlJSON.URL})
+		err := h.a.Producer.WriteEvent(&h.a.LastID, &models.Event{ID: h.a.LastID, HashURL: hash, URL: urlJSON.URL})
 		if err != nil {
 			// ошибка при записи в файл, возращаем 500
 			w.WriteHeader(http.StatusInternalServerError)

@@ -5,6 +5,12 @@ import (
 	"os"
 )
 
+const (
+	serverAdderss = "SERVER_ADDRESS"
+	baseAddress   = "BASE_URL"
+	pathToFile    = "FILE_STORAGE_PATH"
+)
+
 type Config struct {
 	Address         string
 	BaseAddress     string
@@ -21,14 +27,14 @@ func Parse(conf *Config) {
 	flag.StringVar(&conf.StorageFileName, "f", "/tmp/short-url-db.json", "Full path to the file where the created shortened URLs are stored")
 	flag.Parse()
 
-	if a := os.Getenv("SERVER_ADDRESS"); a != "" {
+	if a := os.Getenv(serverAdderss); a != "" {
 		conf.Address = a
 	}
-	if b := os.Getenv("BASE_URL"); b != "" {
+	if b := os.Getenv(baseAddress); b != "" {
 		conf.BaseAddress = b
 	}
 
-	if f := os.Getenv("FILE_STORAGE_PATH"); f != "" {
+	if f := os.Getenv(pathToFile); f != "" {
 		conf.StorageFileName = f
 	}
 }

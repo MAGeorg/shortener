@@ -14,11 +14,12 @@ func main() {
 	config.Parse(cfg)
 
 	// инициализация логгера
-	if err := logger.NewLogger(); err != nil {
+	lg, err := logger.NewLogger()
+	if err != nil {
 		panic(err)
 	}
 	defer func() {
-		if err := logger.Sugar.Sync(); err != nil {
+		if err := lg.Sync(); err != nil {
 			panic(err)
 		}
 	}()
@@ -28,7 +29,6 @@ func main() {
 
 	// проверка конфига на наличие переменной для хранения имени файла
 	var lastID int
-	var err error
 	if cfg.StorageFileName != "" {
 		lastID, err = storage.RestoreData(cfg.StorageFileName, storURL)
 		if err != nil {
@@ -51,7 +51,7 @@ func main() {
 	}
 
 	// инициализация контекста
-	appData := appdata.NewAppData(cfg.BaseAddress, storURL, lastID, producer)
+	appData := appdata.NewAppData(cfg.BaseAddress, storURL, lastID, lg, producer)
 
 	// запуск сервера
 	err = handlers.RunServer(cfg.Address, appData)

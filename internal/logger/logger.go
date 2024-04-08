@@ -16,13 +16,10 @@ type LogStruct struct {
 	Size     int
 }
 
-func NewLogger() error {
+func NewLogger() (*zap.SugaredLogger, error) {
 	logger, err := zap.NewDevelopment()
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	Sugar = *logger.Sugar()
-
-	return nil
+	return logger.Sugar(), nil
 }

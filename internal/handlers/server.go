@@ -13,12 +13,13 @@ import (
 
 func RunServer(address string, a *appdata.AppData) error {
 	h := AppHandler{a}
+	lgMiddleware := logger.NewLogMiddleware(a.Logger)
 
 	r := chi.NewRouter()
 
-	r.Method("POST", "/", logger.MiddlewareLog(middleware.MiddlewareGzip(http.HandlerFunc(h.CreateHashURL))))
-	r.Method("POST", "/api/shorten", logger.MiddlewareLog(middleware.MiddlewareGzip(http.HandlerFunc(h.CreateHashURLJSON))))
-	r.Method("GET", "/{id}", logger.MiddlewareLog(middleware.MiddlewareGzip(http.HandlerFunc(h.GetOriginURL))))
+	r.Method("POST", "/", lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.CreateHashURL))))
+	r.Method("POST", "/api/shorten", lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.CreateHashURLJSON))))
+	r.Method("GET", "/{id}", lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.GetOriginURL))))
 
 	log.Printf("Server fun on %s address ...", address)
 	if err := http.ListenAndServe(address, r); err != nil {

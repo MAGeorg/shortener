@@ -71,7 +71,7 @@ func TestCreateHashURL(t *testing.T) {
 				contentType: "text/plain",
 			},
 			want: want{
-				code:        http.StatusNotFound,
+				code:        http.StatusUnprocessableEntity,
 				body:        "",
 				contentType: "text/plain",
 			},
@@ -300,7 +300,7 @@ func TestCreateHashURLJSON(t *testing.T) {
 				contentType: "application/json",
 			},
 			want: want{
-				code:        http.StatusNotFound,
+				code:        http.StatusUnprocessableEntity,
 				body:        "",
 				contentType: "application/json",
 			},

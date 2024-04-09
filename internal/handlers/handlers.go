@@ -22,14 +22,15 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 	urlStr, err := io.ReadAll(r.Body)
 
 	if err != nil || !utils.CheckURL(string(urlStr)) {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
 	urlHash, hash, err := h.a.StorageURL.AddURL(h.a.BaseAddress, string(urlStr))
 
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
+		// ошибка при генерации сокращенного URL, возращаем 500
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -77,7 +78,7 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -89,14 +90,15 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !utils.CheckURL(urlJSON.URL) {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
 	urlHash, hash, err := h.a.StorageURL.AddURL(h.a.BaseAddress, urlJSON.URL)
 
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
+		// ошибка при генерации сокращенного URL, возращаем 500
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

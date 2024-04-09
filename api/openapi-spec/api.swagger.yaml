@@ -1,0 +1,104 @@
+openapi: '3.0.2'
+info:
+  title: Shortner URL service
+  version: '1.0'
+
+servers:
+  - url: http://localhost:8080
+
+tags:
+  - name: URL
+    description: Endpoints for work with URL
+
+paths:
+  /:
+    post:
+      tags: 
+        - URL
+      summary: Creating a new shortened URL
+      description: Creating a new shortened URL based on the hash
+      
+      requestBody:
+        description: Send original URL
+        content:
+          text/plain:
+            schema:
+              type: string
+            example: "https://practicum.yandex.ru/"
+      responses:
+        '201':
+          description: OK
+          content:
+            text/plain:
+              example: "http://localhost:8080/759827921"
+        '422':
+          description: Validation exception
+        '500':
+          description: "Error while processing data"
+    
+  /api/shorten:
+    post:
+      tags:
+        - URL
+      summary: Creating a new shortened URL
+      description: Creating a new shortened URL based on the hash, return json response
+
+      requestBody:
+        description: Send original URL in json view
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestURL"
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseURL"
+        '422':
+          description: Validation exception
+        '500':
+          description: Error while processing data
+
+  /{id}:
+    get:
+      tags:
+        - URL
+      summary: Get original URL
+      description: Get original URL by hash
+      parameters:
+        - name: id
+          in: path
+          description: hash of URL to return
+          required: true
+          schema:
+            type: integer
+            format: int32     
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "https://practicum.yandex.ru/"
+        '404':
+          description: Not found
+
+
+components:
+  schemas:
+    RequestURL:
+      type: object
+      properties:
+        url:
+          type: string
+          example: "https://practicum.yandex.ru/"
+
+    ResponseURL:
+      type: object
+      properties:
+        result:
+          type: string
+          example: "http://localhost:8080/759827921"

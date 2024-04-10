@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/MAGeorg/shortener.git/internal/appdata"
+	"github.com/MAGeorg/shortener.git/internal/core"
 	"github.com/MAGeorg/shortener.git/internal/models"
 	"github.com/MAGeorg/shortener.git/internal/utils"
 )
@@ -21,12 +22,19 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	urlStr, err := io.ReadAll(r.Body)
 
+	// проверка входящего URL
 	if err != nil || !utils.CheckURL(string(urlStr)) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
-	urlHash, hash, err := h.a.StorageURL.AddURL(h.a.BaseAddress, string(urlStr))
+	urlHash, err := core.CreateShotURL(core.InputValueForWriteFile{
+		Stor:        h.a.StorageURL,
+		Producer:    h.a.Producer,
+		BaseAddress: h.a.BaseAddress,
+		URL:         string(urlStr),
+		LastID:      &h.a.LastID,
+	})
 
 	if err != nil {
 		// ошибка при генерации сокращенного URL, возращаем 500
@@ -41,14 +49,6 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 		// ошибка при записи ответа в Body, возращаем 500
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
-	if h.a.LastID != -1 {
-		err := h.a.Producer.WriteEvent(&h.a.LastID, &models.Event{ID: h.a.LastID, HashURL: hash, URL: string(urlStr)})
-		if err != nil {
-			// ошибка при записи в файл, возращаем 500
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-	}
 }
 
 // обработка GET запросв
@@ -60,7 +60,7 @@ func (h *AppHandler) GetOriginURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url, err := h.a.StorageURL.GetOriginURL(r.URL.String()[1:])
+	url, err := core.GetOriginURL(h.a.StorageURL, r.URL.String()[1:])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -94,7 +94,13 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	urlHash, hash, err := h.a.StorageURL.AddURL(h.a.BaseAddress, urlJSON.URL)
+	urlHash, err := core.CreateShotURL(core.InputValueForWriteFile{
+		Stor:        h.a.StorageURL,
+		Producer:    h.a.Producer,
+		BaseAddress: h.a.BaseAddress,
+		URL:         urlJSON.URL,
+		LastID:      &h.a.LastID,
+	})
 
 	if err != nil {
 		// ошибка при генерации сокращенного URL, возращаем 500
@@ -112,12 +118,5 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(resp); err != nil {
 		// ошибка при записи ответа в Body, возращаем 500
 		w.WriteHeader(http.StatusInternalServerError)
-	}
-	if h.a.LastID != -1 {
-		err := h.a.Producer.WriteEvent(&h.a.LastID, &models.Event{ID: h.a.LastID, HashURL: hash, URL: urlJSON.URL})
-		if err != nil {
-			// ошибка при записи в файл, возращаем 500
-			w.WriteHeader(http.StatusInternalServerError)
-		}
 	}
 }

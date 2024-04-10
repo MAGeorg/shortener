@@ -28,26 +28,25 @@ func main() {
 	storURL := storage.NewStorageURL()
 
 	// проверка конфига на наличие переменной для хранения имени файла
-	var lastID int
+	// lastID одновременно служит последним ID записи в файле и флагом для
+	// отмены записи в файл при значении -1
+	lastID := -1
 	if cfg.StorageFileName != "" {
 		lastID, err = storage.RestoreData(cfg.StorageFileName, storURL)
 		if err != nil {
 			logger.Sugar.Errorln("error restore data", err.Error())
 			return
 		}
-	} else {
-		// выставляем как флаг, что в файл сохранять данные не нужно
-		lastID = -1
 	}
 
-	var producer *storage.Producer
+	// объявление Producer для записи данных в файл
+	var producer *storage.Producer = nil
 	if lastID != -1 {
 		producer, err = storage.NewProducer(cfg.StorageFileName)
 		if err != nil {
 			logger.Sugar.Errorln("error get producer", err.Error())
+			return
 		}
-	} else {
-		producer = nil
 	}
 
 	// инициализация контекста

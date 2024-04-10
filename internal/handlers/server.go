@@ -21,7 +21,7 @@ func RunServer(address string, a *appdata.AppData) error {
 	r.Method("POST", "/api/shorten", lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.CreateHashURLJSON))))
 	r.Method("GET", "/{id}", lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.GetOriginURL))))
 
-	log.Printf("Server fun on %s address ...", address)
+	log.Printf("Server run on %s address ...", address)
 	if err := http.ListenAndServe(address, r); err != nil {
 		return err
 	}

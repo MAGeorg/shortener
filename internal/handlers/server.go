@@ -5,18 +5,24 @@ import (
 	"net/http"
 
 	"github.com/MAGeorg/shortener.git/internal/appdata"
+	"github.com/MAGeorg/shortener.git/internal/logger"
+	"github.com/MAGeorg/shortener.git/internal/middleware"
+
 	"github.com/go-chi/chi/v5"
 )
 
-func RunServer(a *appdata.AppData) error {
+func RunServer(address string, a *appdata.AppData) error {
 	h := AppHandler{a}
+	lgMiddleware := logger.NewLogMiddleware(a.Logger)
 
 	r := chi.NewRouter()
-	r.Post("/", h.CreateHashURL)
-	r.Get("/{id}", h.GetOriginURL)
 
-	log.Printf("Server fun on %s address ...", a.Cfg.Address)
-	if err := http.ListenAndServe(a.Cfg.Address, r); err != nil {
+	r.Method("POST", "/", lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.CreateHashURL))))
+	r.Method("POST", "/api/shorten", lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.CreateHashURLJSON))))
+	r.Method("GET", "/{id}", lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.GetOriginURL))))
+
+	log.Printf("Server run on %s address ...", address)
+	if err := http.ListenAndServe(address, r); err != nil {
 		return err
 	}
 	return nil

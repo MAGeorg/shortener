@@ -50,7 +50,7 @@ func main() {
 	}
 
 	// инициализация контекста
-	appData := appdata.NewAppData(cfg.BaseAddress, storURL, lastID, lg, producer)
+	appData := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, lastID, lg, producer)
 
 	// запуск сервера
 	err = handlers.RunServer(cfg.Address, appData)

@@ -28,7 +28,7 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	urlHash, err := core.CreateShotURL(core.InputValueForWriteFile{
+	urlHash, err := core.CreateShotURL(&core.InputValueForWriteFile{
 		Stor:        h.a.StorageURL,
 		Producer:    h.a.Producer,
 		BaseAddress: h.a.BaseAddress,
@@ -94,7 +94,7 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	urlHash, err := core.CreateShotURL(core.InputValueForWriteFile{
+	urlHash, err := core.CreateShotURL(&core.InputValueForWriteFile{
 		Stor:        h.a.StorageURL,
 		Producer:    h.a.Producer,
 		BaseAddress: h.a.BaseAddress,
@@ -119,4 +119,16 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 		// ошибка при записи ответа в Body, возращаем 500
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+// обработка GET запроса для ping DataBase
+func (h *AppHandler) PingDB(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	err := core.PingDB(h.a.DSNdatabase)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

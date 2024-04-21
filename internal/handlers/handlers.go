@@ -30,10 +30,8 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 
 	urlHash, err := core.CreateShotURL(&core.InputValueForWriteFile{
 		Stor:        h.a.StorageURL,
-		Producer:    h.a.Producer,
 		BaseAddress: h.a.BaseAddress,
 		URL:         string(urlStr),
-		LastID:      &h.a.LastID,
 	})
 
 	if err != nil {
@@ -96,10 +94,8 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 
 	urlHash, err := core.CreateShotURL(&core.InputValueForWriteFile{
 		Stor:        h.a.StorageURL,
-		Producer:    h.a.Producer,
 		BaseAddress: h.a.BaseAddress,
 		URL:         urlJSON.URL,
-		LastID:      &h.a.LastID,
 	})
 
 	if err != nil {

@@ -3,10 +3,78 @@ package storage
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/MAGeorg/shortener.git/internal/models"
 )
+
+type StorageURLinFile struct {
+	Producer *Producer
+	savedURL map[uint32]string
+	lastID   int
+}
+
+// получение нового экземпляра хранилища URL по хэшу
+func NewStorageURLinFile(s *Producer) *StorageURLinFile {
+	return &StorageURLinFile{
+		Producer: s,
+		savedURL: make(map[uint32]string),
+		lastID:   0,
+	}
+}
+
+func (s *StorageURLinFile) CreateShotURL(url string, h uint32) (string, error) {
+	// проверяем, есть ли уже запись в файле и локальном кэше
+	if _, ok := s.savedURL[h]; ok {
+		return strconv.FormatUint(uint64(h), 10), nil
+	}
+
+	err := s.Producer.WriteEvent(&models.Event{ID: s.lastID, HashURL: h, URL: url})
+	if err != nil {
+		return "", fmt.Errorf("error write value in file")
+	}
+	s.savedURL[h] = url
+	s.lastID += 1
+	return strconv.FormatUint(uint64(h), 10), nil
+}
+
+func (s *StorageURLinFile) GetOriginURL(str string) (string, error) {
+	// преобразование строки с HashURL в uint32
+	urlHash, err := strconv.ParseUint(str, 10, 32)
+	if err != nil {
+		return "", fmt.Errorf("incorrect hash")
+	}
+
+	// поиск оригинального адреса по HashURL
+	urlOrig, ok := s.savedURL[uint32(urlHash)]
+	if !ok {
+		return "", fmt.Errorf("not found url by hash")
+	}
+	return urlOrig, nil
+}
+
+// функция восстановления данных и записи в хранилище в памяти
+func (s *StorageURLinFile) RestoreData(path string) error {
+	var lastID int
+	consumer, err := NewConsumer(path)
+	if err != nil {
+		return err
+	}
+	defer consumer.Close()
+
+	for {
+		e, err := consumer.ReadEvent()
+		if err != nil || e == nil {
+			break
+		}
+		lastID = e.ID
+		s.savedURL[e.HashURL] = e.URL
+	}
+	s.lastID = lastID
+	return nil
+}
 
 type Consumer struct {
 	file *os.File
@@ -43,28 +111,6 @@ func (c *Consumer) ReadEvent() (*models.Event, error) {
 
 func (c *Consumer) Close() error {
 	return c.file.Close()
-}
-
-// функция восстановления данных и записи в хранилище в памяти
-// вернет ID последней записи, чтобы продолжить запись, и ошибку
-func RestoreData(path string, stor *StorageURL) (int, error) {
-	var lastID int
-	consumer, err := NewConsumer(path)
-	if err != nil {
-		return lastID, err
-	}
-	defer consumer.Close()
-
-	for {
-		e, err := consumer.ReadEvent()
-		if err != nil || e == nil {
-			break
-		}
-		lastID = e.ID
-		stor.Add(e.URL, e.HashURL)
-	}
-
-	return lastID, nil
 }
 
 type Producer struct {

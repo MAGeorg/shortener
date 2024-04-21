@@ -145,22 +145,22 @@ func TestRestoreData(t *testing.T) {
 
 	want := []struct {
 		lastID  int
-		hash    uint32
+		hash    string
 		wantURL string
 	}{
 		{
 			lastID:  2,
-			hash:    759827921,
+			hash:    "759827921",
 			wantURL: "http://yandex.ru",
 		},
 		{
 			lastID:  2,
-			hash:    759827922,
+			hash:    "759827922",
 			wantURL: "http://ya.ru",
 		},
 		{
 			lastID:  2,
-			hash:    759827923,
+			hash:    "759827923",
 			wantURL: "https://ex.ru",
 		},
 	}
@@ -185,16 +185,16 @@ func TestRestoreData(t *testing.T) {
 	asserts.Empty(err)
 
 	// инициализация хранилища
-	storURL := NewStorageURL()
+	producer, err = NewProducer(path)
+	asserts.Empty(err)
+	storURL := NewStorageURLinFile(producer)
 
 	t.Run("test restore data 1", func(t *testing.T) {
-		lastID, err := RestoreData(path, storURL)
+		err := storURL.RestoreData(path)
 		asserts.Empty(err)
 
-		asserts.Equal(want[0].lastID, lastID)
-
 		for _, w := range want {
-			v, err := storURL.Get(w.hash)
+			v, err := storURL.GetOriginURL(w.hash)
 			asserts.Empty(err)
 			asserts.Equal(w.wantURL, v)
 		}

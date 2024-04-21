@@ -24,33 +24,30 @@ func main() {
 		}
 	}()
 
-	// инициализация хранилища
-	storURL := storage.NewStorageURL()
+	// инициализация контекста
+	appData := appdata.NewAppData(cfg.BaseAddress, nil, cfg.PostgreSQLDSN, lg)
 
-	// проверка конфига на наличие переменной для хранения имени файла
-	// lastID одновременно служит последним ID записи в файле и флагом для
-	// отмены записи в файл при значении -1
-	lastID := -1
+	// инициализация хранилища в зависимости от типа хранилища
 	if cfg.StorageFileName != "" {
-		lastID, err = storage.RestoreData(cfg.StorageFileName, storURL)
-		if err != nil {
-			logger.Sugar.Errorln("error restore data", err.Error())
-			return
-		}
-	}
-
-	// объявление Producer для записи данных в файл
-	var producer *storage.Producer = nil
-	if lastID != -1 {
-		producer, err = storage.NewProducer(cfg.StorageFileName)
+		producer, err := storage.NewProducer(cfg.StorageFileName)
 		if err != nil {
 			logger.Sugar.Errorln("error get producer", err.Error())
 			return
 		}
-	}
 
-	// инициализация контекста
-	appData := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, lastID, lg, producer)
+		storURL := storage.NewStorageURLinFile(producer)
+		err = storURL.RestoreData(cfg.StorageFileName)
+
+		if err != nil {
+			logger.Sugar.Errorln("error restore data", err.Error())
+			return
+		}
+		appData.StorageURL = storURL
+	} else {
+		storURL := storage.NewStorageURLinMemory()
+		appData.StorageURL = storURL
+
+	}
 
 	// запуск сервера
 	err = handlers.RunServer(cfg.Address, appData)

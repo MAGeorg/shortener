@@ -88,14 +88,14 @@ func TestCreateHashURL(t *testing.T) {
 	}
 
 	// инициализация хранилища
-	storURL := storage.NewStorageURL()
+	storURL := storage.NewStorageURLinMemory()
 
 	// инициализаниция конфига
 	cfg := config.NewConfig()
 	config.Parse(cfg)
 
 	// инициализация контекста без записи в файл
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, -1, lg, nil)
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, lg)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {
@@ -204,13 +204,13 @@ func TestGetOriginURL(t *testing.T) {
 	}
 
 	// инициализация хранилища
-	storURL := storage.NewStorageURL()
+	storURL := storage.NewStorageURLinMemory()
 
 	// инициализаниция конфига
 	cfg := config.NewConfig()
 
 	// инициализация контекста без записи в файл
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, -1, lg, nil)
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, lg)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {
@@ -317,13 +317,13 @@ func TestCreateHashURLJSON(t *testing.T) {
 	}
 
 	// инициализация хранилища
-	storURL := storage.NewStorageURL()
+	storURL := storage.NewStorageURLinMemory()
 
 	// инициализаниция конфига
 	cfg := config.NewConfig()
 
 	// инициализация контекста без записи в файл
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, -1, lg, nil)
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, lg)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {

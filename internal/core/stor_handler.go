@@ -26,7 +26,7 @@ func CreateShotURL(i *InputValueForWriteFile) (string, error) {
 	urlHash, err := i.Stor.CreateShotURL(i.URL, h)
 
 	if err != nil {
-		return "", fmt.Errorf("error add url to storage")
+		return "", fmt.Errorf("error add url to storage: %w", err)
 	}
 	return fmt.Sprintf("%s/%s", i.BaseAddress, urlHash), nil
 }
@@ -35,7 +35,7 @@ func CreateShotURL(i *InputValueForWriteFile) (string, error) {
 func GetOriginURL(stor storage.Storage, hash string) (string, error) {
 	url, err := stor.GetOriginURL(hash)
 	if err != nil {
-		return "", fmt.Errorf("error get value from storage")
+		return "", fmt.Errorf("error get value from storage: %w", err)
 	}
 	return url, nil
 }

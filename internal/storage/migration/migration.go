@@ -53,10 +53,6 @@ func (m *Migration) run(ctx context.Context, db *sql.DB) error {
 		return fmt.Errorf("error %v: failed to parse SQL migration file: %w", filepath.Base(m.Source), err)
 	}
 
-	for _, i := range statements {
-		fmt.Println(i)
-	}
-
 	start := time.Now()
 	if err := runSQLMigration(ctx, db, statements[0]); err != nil {
 		return fmt.Errorf("ERROR %v: failed to run SQL migration: %w", filepath.Base(m.Source), err)

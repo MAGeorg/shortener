@@ -36,6 +36,7 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		// ошибка при генерации сокращенного URL, возращаем 500
+		h.a.Logger.Errorln("error create new record", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

@@ -79,5 +79,6 @@ func CheckExistScheme(ctx context.Context, db *sql.DB) bool {
 		return false
 	}
 	defer res.Close()
-	return true
+
+	return res.Err() == nil
 }

@@ -29,7 +29,7 @@ func (s *StorageURLinDB) CreateShotURL(url string, h uint32) (string, error) {
 func (s *StorageURLinDB) GetOriginURL(str string) (string, error) {
 	res, err := s.conn.QueryContext(context.Background(),
 		"SELECT origin_url FROM shot_url WHERE hash_value = $1;", str)
-	if err != nil {
+	if err != nil || res.Err() != nil {
 		return "", err
 	}
 

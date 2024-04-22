@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/MAGeorg/shortener.git/internal/appdata"
 	"github.com/MAGeorg/shortener.git/internal/config"
@@ -22,11 +23,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	defer func() {
 		if err := lg.Sync(); err != nil {
-			panic(err)
+			fmt.Println("error sync logger: ", err)
 		}
 	}()
+
+	// проверка значений для запуска
+	lg.Infof("address = %s base = %s filename = %s postgres-dsn = %s",
+		cfg.Address, cfg.BaseAddress, cfg.StorageFileName, cfg.PostgreSQLDSN)
 
 	// инициализация контекста
 	appData := appdata.NewAppData(cfg.BaseAddress, nil, cfg.PostgreSQLDSN, lg)
@@ -37,13 +43,13 @@ func main() {
 		// создаем соединение
 		conn, err := core.ConnectDB(cfg.PostgreSQLDSN)
 		if err != nil {
-			logger.Sugar.Errorln("error connect to db", err.Error())
+			lg.Errorln("error connect to db", err.Error())
 			return
 		}
 
 		// проверяем доступна ли база
 		if err := conn.Ping(); err != nil {
-			logger.Sugar.Errorln("error open connect: ", err.Error())
+			lg.Errorln("error open connect: ", err.Error())
 			return
 		}
 
@@ -54,17 +60,18 @@ func main() {
 			migrate := migration.Migration{Source: source}
 			err = migrate.Up(conn)
 			if err != nil {
-				logger.Sugar.Errorln("error execute migrate")
+				lg.Errorln("error execute migrate")
 			}
 		}
 
 		storURL := storage.NewStorageURLinDB(conn)
 		appData.StorageURL = storURL
+		lg.Infoln("success add db storage")
 
 	case cfg.StorageFileName != "":
 		producer, err := storage.NewProducer(cfg.StorageFileName)
 		if err != nil {
-			logger.Sugar.Errorln("error get producer", err.Error())
+			lg.Errorln("error get producer", err.Error())
 			return
 		}
 
@@ -73,13 +80,16 @@ func main() {
 		err = storURL.RestoreData(cfg.StorageFileName)
 
 		if err != nil {
-			logger.Sugar.Errorln("error restore data", err.Error())
+			lg.Errorln("error restore data", err.Error())
 			return
 		}
 		appData.StorageURL = storURL
+		lg.Infoln("success add file storage")
+
 	default:
 		storURL := storage.NewStorageURLinMemory()
 		appData.StorageURL = storURL
+		lg.Infoln("success add in-memory storage")
 	}
 
 	// запуск сервера

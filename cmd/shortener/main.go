@@ -40,6 +40,13 @@ func main() {
 			logger.Sugar.Errorln("error connect to db", err.Error())
 			return
 		}
+
+		// проверяем доступна ли база
+		if err := conn.Ping(); err != nil {
+			logger.Sugar.Errorln("error open connect: ", err.Error())
+			return
+		}
+
 		// проверяем есть ли схема
 		if res := migration.CheckExistScheme(context.Background(), conn); !res {
 			// выполняем миграцию если схемы нет

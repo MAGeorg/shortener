@@ -1,3 +1,4 @@
+// долкументация
 package handlers
 
 // Пакет handlers содержит функционал обработчиков endpoint:

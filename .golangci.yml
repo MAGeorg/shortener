@@ -1,0 +1,256 @@
+run:
+  timeout: 3m
+
+
+# Список используемых линтеров
+# https://golangci-lint.run/usage/linters/
+linters:
+  # По умолчанию отключаем все линтеры.
+  enable-all: false
+  disable-all: true
+
+  # Включаем настройку для быстрого анализа.
+  enable:
+    ## enabled by default
+    - errcheck                  # Проверка непроверенных ошибок, эти непроверенные ошибки в некоторых случаях могут быть критическими ошибками.
+    - gosimple                  # Специализируется на упрощении кода.
+    # - govet                     # Сообщает о подозрительных конструкциях, таких как вызов Printf, аргументы которого не совпадают со строкой формата.
+    - ineffassign               # Обнаруживает, когда присваивания существующим переменным не используются.
+    - staticcheck               # Это go vet на стероидах, применяющий тонну проверок статического анализа.
+    - typecheck                 # Как внешняя часть компилятора Go, разбирает и проверяет типы кода Go.
+    - unused                    # Проверяет наличие неиспользуемых констант, переменных, функций и типов .
+    ## disabled by default
+    - asasalint                 # Проверка на передачу []any как any в variadic func(...any).
+    - asciicheck                # Проверяет, что ваш код не содержит идентификаторов, отличных от ASCII.
+    - bidichk                   # Проверяет наличие опасных последовательностей символов Юникода.
+    - bodyclose                 # Проверяет, успешно ли закрыто тело HTTP-ответа.
+    - cyclop                    # Проверяет цикломатическую сложность функций и пакетов.
+    - dupl                      # Инструмент для обнаружения клонов кода.
+    - durationcheck             # Проверка на наличие двух длительностей, умноженных друг на друга.
+    - errname                   # Проверяет, что ошибки-дозорные имеют префикс Err, а типы ошибок - суффикс Error.
+    - errorlint                 # Находит код, который вызовет проблемы со схемой обертывания ошибок, введенной в Go 1.13.
+    - execinquery               # Проверяет строку запроса в функции Query, которая читает ваши файлы Go src, и найденные предупреждения.
+    - exhaustive                # Проверяет исчерпанность операторов перечисления enum.
+    - exportloopref             # Проверяет наличие указателей на переменные, заключающие цикл.
+    - forbidigo                 # Запрещает идентификаторы.
+    - funlen                    # Инструмент для обнаружения длинных функций.
+    - gocheckcompilerdirectives # Проверяет комментарии к директивам компилятора go (//go:).
+    - gochecknoinits            # Проверяет отсутствие функций init в коде Go.
+    # - gochecksumtype            # Проверяет исчерпываемость "типов сумм" в Go.
+    - gocognit                  # Вычисляет и проверяет когнитивную сложность функций.
+    - goconst                   # Находит повторяющиеся строки, которые можно заменить константой.
+    - gocritic                  # Предоставляет диагностику, которая проверяет ошибки, производительность и проблемы со стилем.
+    # - godot                     # Проверяет, заканчиваются ли комментарии точкой.
+    - goimports                 # Помимо исправления импорта, goimports также форматирует ваш код в том же стиле, что и gofmt.
+    # - gomnd                     # Обнаруживает магические числа.
+    - gomoddirectives           # Управляет использованием директив 'replace', 'retract' и 'excludes' в go.mod.
+    - gomodguard                # Разрешает и блокирует списки linter для прямых зависимостей модулей Go. Это отличается от depguard, где есть разные типы блоков, например, ограничения версии и рекомендации модуля.
+    - goprintffuncname           # Проверяет, что printf-подобные функции названы с f в конце.
+    - gosec                     # Проверяет исходный код на наличие проблем с безопасностью.
+    - lll                       # Сообщает о длинных строках.
+    - loggercheck               # Проверяет пары ключ-значение для распространенных библиотек логгеров (kitlog,klog,logr,zap).
+    - makezero                  # Находит объявления фрагментов с ненулевой начальной длиной.
+    - mirror                    # Сообщает о неправильных зеркальных шаблонах использования байтов/строк.
+    - musttag                   # Принудительное использование тегов полей в (не)маршализированных структурах.
+    - nakedret                  # Находит "голые" возвраты в функциях, длина которых превышает заданную длину функции.
+    - nestif                    # Сообщает о глубоко вложенных операторах if.
+    - nilerr                    # Находит код, возвращающий nil, даже если он проверяет, что ошибка не nil.
+    - nilnil                    # Проверяет, что нет одновременного возврата ошибки nil и недопустимого значения.
+    - noctx                     # Обнаруживает отправку http-запроса без context.Context.
+    - nolintlint                # Сообщает о неправильно сформированных или недостаточных директивах nolint.
+    - nonamedreturns            # Сообщает обо всех именованных возвратах.
+    - nosprintfhostport         # Проверяет, не используется ли Sprintf для построения хоста с портом в URL.
+    # - perfsprint                # Проверяет, что fmt.Sprintf может быть заменен более быстрой альтернативой.
+    - predeclared               # Находит код, который затеняет один из заранее объявленных идентификаторов Go.
+    - promlinter                # Проверяет именование метрик Prometheus через promlint.
+    # - protogetter               # Сообщает о прямом чтении из полей сообщений proto, когда следует использовать геттеры.
+    - reassign                  # Проверяет, что переменные пакета не переназначены.
+    - revive                    # Быстрый, конфигурируемый, расширяемый, гибкий и красивый линкер для Go, замена golint.
+    - rowserrcheck              # Проверяет, успешно ли проверяется Err строк.
+    # - sloglint                  # Обеспечивает согласованный стиль кода при использовании log/slog.
+    - sqlclosecheck             # Проверяет, что sql.Rows и sql.Stmt закрыты.
+    - stylecheck                # Является заменой golint.
+    - tenv                      # Обнаруживает использование os.Setenv вместо t.Setenv с Go1.17.
+    - testableexamples          # Проверяет, являются ли примеры тестируемыми (имеют ожидаемый результат).
+    # - testifylint               # Проверяет использование github.com/stretchr/testify.
+    # - testpackage               # Заставляет вас использовать отдельный пакет _test.
+    - tparallel                 # Обнаруживает неуместное использование метода t.Parallel() в ваших тестовых кодах Go.
+    - unconvert                 # Удаляет ненужные преобразования типов.
+    - unparam                   # Сообщает о неиспользуемых параметрах функции.
+    - usestdlibvars             # Обнаруживает возможность использования переменных/констант из стандартной библиотеки Go.
+    - wastedassign              # Находит ненужные операторы присваивания.
+    - whitespace                # Определяет ведущие и завершающие пробельные символы.
+
+linters-settings:
+  cyclop:
+    max-complexity: 30
+    package-average: 15.0
+
+  errcheck:
+    check-type-assertions: true
+    ignore: fmt:.*
+
+  exhaustive:
+    check:
+      - switch
+      - map
+
+  exhaustruct:
+    exclude:
+      # std libs
+      - "^net/http.Client$"
+      - "^net/http.Cookie$"
+      - "^net/http.Request$"
+      - "^net/http.Response$"
+      - "^net/http.Server$"
+      - "^net/http.Transport$"
+      - "^net/url.URL$"
+      - "^os/exec.Cmd$"
+      - "^reflect.StructField$"
+      # public libs
+      - "^github.com/Shopify/sarama.Config$"
+      - "^github.com/Shopify/sarama.ProducerMessage$"
+      - "^github.com/mitchellh/mapstructure.DecoderConfig$"
+      - "^github.com/prometheus/client_golang/.+Opts$"
+      - "^github.com/spf13/cobra.Command$"
+      - "^github.com/spf13/cobra.CompletionOptions$"
+      - "^github.com/stretchr/testify/mock.Mock$"
+      - "^github.com/testcontainers/testcontainers-go.+Request$"
+      - "^github.com/testcontainers/testcontainers-go.FromDockerfile$"
+      - "^golang.org/x/tools/go/analysis.Analyzer$"
+      - "^google.golang.org/protobuf/.+Options$"
+      - "^gopkg.in/yaml.v3.Node$"
+
+  funlen:
+    lines: 100
+    statements: 50
+    ignore-comments: true
+
+  gocognit:
+    min-complexity: 20
+
+  gocritic:
+    settings:
+      captLocal:
+        paramsOnly: false
+      underef:
+        skipRecvDeref: false
+
+  gomnd:
+    ignored-functions:
+      - flag.Arg
+      - flag.Duration.*
+      - flag.Float.*
+      - flag.Int.*
+      - flag.Uint.*
+      - os.Chmod
+      - os.Mkdir.*
+      - os.OpenFile
+      - os.WriteFile
+      - prometheus.ExponentialBuckets.*
+      - prometheus.LinearBuckets
+
+  gomodguard:
+    blocked:
+      modules:
+        - github.com/golang/protobuf:
+            recommendations:
+              - google.golang.org/protobuf
+            reason: "see https://developers.google.com/protocol-buffers/docs/reference/go/faq#modules"
+        - github.com/satori/go.uuid:
+            recommendations:
+              - github.com/google/uuid
+            reason: "satori's package is not maintained"
+        - github.com/gofrs/uuid:
+            recommendations:
+              - github.com/gofrs/uuid/v5
+            reason: "gofrs' package was not go module before v5"
+
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment # too strict
+    settings:
+      shadow:
+        strict: true
+
+  inamedparam:
+    skip-single-param: true
+
+  nakedret:
+    max-func-lines: 0
+
+  nolintlint:
+    allow-no-explanation: [ funlen, gocognit, lll ]
+    require-explanation: true
+    require-specific: true
+
+  perfsprint:
+    strconcat: false
+
+  revive:
+    ignore-generated-header: true
+    severity: warning
+    confidence: 0.8
+    # Включение всех доступных правил
+    enable-all-rules: false
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: exported
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
+      - name: errorf
+      - name: empty-block
+      - name: superfluous-else
+      - name: unused-parameter
+      - name: unreachable-code
+      - name: redefines-builtin-id
+
+  rowserrcheck:
+    packages:
+      - github.com/jmoiron/sqlx
+
+  tenv:
+    all: true
+
+issues:
+  max-same-issues: 50
+
+  include:
+    - EXC0012
+    - EXC0015
+
+  exclude-rules:
+    - source: "(noinspection|TODO)"
+      linters: [ godot ]
+    - source: "//noinspection"
+      linters: [ gocritic ]
+    - path: "_test\\.go"
+      linters:
+        - bodyclose
+        - dupl
+        - funlen
+        - goconst
+        - gosec
+        - noctx
+        - wrapcheck
+
+output:
+  formats:
+    - format: colored-tab
+  print-issued-lines: true
+  print-linter-name: true
+  sort-results: true

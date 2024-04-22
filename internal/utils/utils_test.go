@@ -37,11 +37,10 @@ func TestGetHash(t *testing.T) {
 	asserts := assert.New(t)
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.name, func(_ *testing.T) {
 			ans := GetHash(test.s)
 
 			asserts.Equal(test.want, ans)
-
 		})
 	}
 }
@@ -72,7 +71,7 @@ func TestCheckURL(t *testing.T) {
 	asserts := assert.New(t)
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.name, func(_ *testing.T) {
 			ans := CheckURL(test.url)
 
 			asserts.Equal(test.want, ans)

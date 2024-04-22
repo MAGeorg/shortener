@@ -6,6 +6,8 @@ import (
 )
 
 // структура хранилища URL по хэшу
+//
+//nolint:revive // FP
 type StorageURLinMemory struct {
 	savedURL map[uint32]string
 }
@@ -17,12 +19,14 @@ func NewStorageURLinMemory() *StorageURLinMemory {
 	}
 }
 
+// создание записи в памяти с новым сокращенным URL
 func (s *StorageURLinMemory) CreateShotURL(url string, h uint32) (string, error) {
 	// добавление в хранилище в памяти
 	s.savedURL[h] = url
 	return strconv.FormatUint(uint64(h), 10), nil
 }
 
+// получение из памяти изначального запроса по hash
 func (s *StorageURLinMemory) GetOriginURL(str string) (string, error) {
 	// преобразование строки с HashURL в uint32
 	urlHash, err := strconv.ParseUint(str, 10, 32)

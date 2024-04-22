@@ -1,3 +1,4 @@
+// пакет для работы с файлом в качестве хранилища
 package storage
 
 import (
@@ -10,6 +11,9 @@ import (
 	"github.com/MAGeorg/shortener.git/internal/models"
 )
 
+// структура хранилища файла
+//
+//nolint:revive // FP
 type StorageURLinFile struct {
 	Producer *Producer
 	savedURL map[uint32]string
@@ -25,6 +29,7 @@ func NewStorageURLinFile(s *Producer) *StorageURLinFile {
 	}
 }
 
+// создание записи в файле с новым сокращенным URL
 func (s *StorageURLinFile) CreateShotURL(url string, h uint32) (string, error) {
 	// проверяем, есть ли уже запись в файле и локальном кэше
 	if _, ok := s.savedURL[h]; ok {
@@ -36,10 +41,11 @@ func (s *StorageURLinFile) CreateShotURL(url string, h uint32) (string, error) {
 		return "", fmt.Errorf("error write value in file")
 	}
 	s.savedURL[h] = url
-	s.lastID += 1
+	s.lastID++
 	return strconv.FormatUint(uint64(h), 10), nil
 }
 
+// получение из БД изначального запроса по hash
 func (s *StorageURLinFile) GetOriginURL(str string) (string, error) {
 	// преобразование строки с HashURL в uint32
 	urlHash, err := strconv.ParseUint(str, 10, 32)
@@ -73,15 +79,18 @@ func (s *StorageURLinFile) RestoreData(path string) error {
 		s.savedURL[e.HashURL] = e.URL
 	}
 	s.lastID = lastID
+	//nolint:nilerr // на 74 строке ошибка считывания EOF
 	return nil
 }
 
+// структура Consumer, содержит указатель на файл, с которым работаем
+// и scanner
 type Consumer struct {
-	file *os.File
-	// заменяем Reader на Scanner
+	file    *os.File
 	scanner *bufio.Scanner
 }
 
+// создание экземпляра Consumer
 func NewConsumer(filename string) (*Consumer, error) {
 	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
@@ -94,6 +103,7 @@ func NewConsumer(filename string) (*Consumer, error) {
 	}, nil
 }
 
+// запись consumer события (новой записи сокращенного URL)
 func (c *Consumer) ReadEvent() (*models.Event, error) {
 	if !c.scanner.Scan() {
 		return nil, c.scanner.Err()
@@ -109,15 +119,19 @@ func (c *Consumer) ReadEvent() (*models.Event, error) {
 	return &event, nil
 }
 
+// закрывает файл, с которым работает consumer
 func (c *Consumer) Close() error {
 	return c.file.Close()
 }
 
+// структура Producer, содержит указать на файл, с которым работает
+// и writer
 type Producer struct {
 	file   *os.File
 	writer *bufio.Writer
 }
 
+// получение нового экземпляра Producer
 func NewProducer(filename string) (*Producer, error) {
 	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
@@ -131,6 +145,7 @@ func NewProducer(filename string) (*Producer, error) {
 	}, nil
 }
 
+// запись
 func (p *Producer) WriteEvent(event *models.Event) error {
 	data, err := json.Marshal(&event)
 	if err != nil {
@@ -148,6 +163,7 @@ func (p *Producer) WriteEvent(event *models.Event) error {
 	return p.writer.Flush()
 }
 
+// закрытие файла, с которым работает producer
 func (p *Producer) Close() error {
 	return p.file.Close()
 }

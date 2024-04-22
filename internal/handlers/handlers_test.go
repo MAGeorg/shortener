@@ -99,7 +99,7 @@ func TestCreateHashURL(t *testing.T) {
 	h := AppHandler{appContext}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.name, func(_ *testing.T) {
 			r := httptest.NewRequest(test.req.method, "/", strings.NewReader(test.req.body))
 
 			// заполняем необходимые поля и выставляем ResponseRecorder для записи ответа сервера
@@ -114,7 +114,6 @@ func TestCreateHashURL(t *testing.T) {
 			asserts.Equal(test.want.code, result.StatusCode)
 			asserts.Equal(test.want.contentType, result.Header.Get("Content-Type"))
 			asserts.Contains(w.Body.String(), test.want.body)
-
 		})
 	}
 }
@@ -214,7 +213,7 @@ func TestGetOriginURL(t *testing.T) {
 	h := AppHandler{appContext}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.name, func(_ *testing.T) {
 			var r *http.Request
 			w := httptest.NewRecorder()
 
@@ -241,7 +240,6 @@ func TestGetOriginURL(t *testing.T) {
 			case http.MethodPost:
 				asserts.Contains(w.Body.String(), test.want.body)
 			}
-
 		})
 	}
 }

@@ -42,7 +42,7 @@ func TestNewProducer(t *testing.T) {
 	defer producer.Close()
 
 	for i, test := range tests {
-		t.Run(fmt.Sprintf("test-producer-%d", i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("test-producer-%d", i), func(_ *testing.T) {
 			err := producer.WriteEvent(&test)
 			asserts.Empty(err)
 		})
@@ -111,17 +111,15 @@ func TestNewConsumer(t *testing.T) {
 	}()
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.name, func(_ *testing.T) {
 			res, err := consumer.ReadEvent()
 
 			asserts.Empty(err)
 			asserts.Equal(test.want.ID, res.ID)
 			asserts.Equal(test.want.HashURL, res.HashURL)
 			asserts.Equal(test.want.URL, res.URL)
-
 		})
 	}
-
 }
 
 func TestRestoreData(t *testing.T) {
@@ -189,7 +187,7 @@ func TestRestoreData(t *testing.T) {
 	asserts.Empty(err)
 	storURL := NewStorageURLinFile(producer)
 
-	t.Run("test restore data 1", func(t *testing.T) {
+	t.Run("test restore data 1", func(_ *testing.T) {
 		err := storURL.RestoreData(path)
 		asserts.Empty(err)
 
@@ -198,7 +196,5 @@ func TestRestoreData(t *testing.T) {
 			asserts.Empty(err)
 			asserts.Equal(w.wantURL, v)
 		}
-
 	})
-
 }

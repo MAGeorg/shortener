@@ -1,3 +1,4 @@
+// пакет для обработки конфига.
 package config
 
 import (
@@ -5,6 +6,7 @@ import (
 	"os"
 )
 
+// используемые имена переменных окружения.
 const (
 	serverAdderss = "SERVER_ADDRESS"
 	baseAddress   = "BASE_URL"
@@ -12,6 +14,7 @@ const (
 	dsnDB         = "DATABASE_DSN"
 )
 
+// структура конфига.
 type Config struct {
 	Address         string
 	BaseAddress     string
@@ -19,15 +22,17 @@ type Config struct {
 	PostgreSQLDSN   string
 }
 
+// получение нового экземпляра конфига Config.
 func NewConfig() *Config {
 	return &Config{}
 }
 
+// парсинг конфига.
 func Parse(conf *Config) {
 	flag.StringVar(&conf.Address, "a", "localhost:8080", "Address for run server")
 	flag.StringVar(&conf.BaseAddress, "b", "http://localhost:8080", "Base URL for shortener address")
-	flag.StringVar(&conf.StorageFileName, "f", "/tmp/short-url-db.json", "Full path to the file where the created shortened URLs are stored")
-	// flag.StringVar(&conf.StorageFileName, "f", "", "Full path to the file where the created shortened URLs are stored")
+	flag.StringVar(&conf.StorageFileName, "f", "/tmp/short-url-db.json",
+		"Full path to the file where the created shortened URLs are stored")
 	flag.StringVar(&conf.PostgreSQLDSN, "d", "", "Base DSN for PostgreSQL")
 	flag.Parse()
 

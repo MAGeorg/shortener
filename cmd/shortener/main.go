@@ -1,3 +1,4 @@
+// точка входа для сервера.
 package main
 
 import (
@@ -26,7 +27,8 @@ func main() {
 
 	defer func() {
 		if err := lg.Sync(); err != nil {
-			fmt.Println("error sync logger: ", err)
+			//nolint:forbidigo // FP
+			fmt.Printf("error sync logger: %s", err.Error())
 		}
 	}()
 

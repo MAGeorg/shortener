@@ -11,6 +11,8 @@ import (
 	"github.com/MAGeorg/shortener.git/internal/utils"
 )
 
+// структура содержащая необходимые данные для обработки запросов
+// функция обработки запросов - методы структуры
 type AppHandler struct {
 	a *appdata.AppData
 }
@@ -46,6 +48,7 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 	_, err = w.Write([]byte(urlHash))
 	if err != nil {
 		// ошибка при записи ответа в Body, возращаем 500
+		h.a.Logger.Errorln("error when write answer", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
@@ -119,7 +122,7 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 }
 
 // обработка GET запроса для ping DataBase
-func (h *AppHandler) PingDB(w http.ResponseWriter, r *http.Request) {
+func (h *AppHandler) PingDB(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	err := core.PingDB(h.a.DSNdatabase)
 	if err != nil {
@@ -128,4 +131,8 @@ func (h *AppHandler) PingDB(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+// обработка POST запроса для создания сокращенных url для списка url
+func (h *AppHandler) CreateHashURLBatchJSON(_ http.ResponseWriter, _ *http.Request) {
 }

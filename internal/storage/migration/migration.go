@@ -1,3 +1,4 @@
+// пакет, реализующий работу с миграциями
 package migration
 
 import (
@@ -9,6 +10,7 @@ import (
 	"time"
 )
 
+// структура миграцмий, на данный момент содержит путь до одного файла с миграцими
 type Migration struct {
 	Source string
 }
@@ -58,10 +60,13 @@ func (m *Migration) run(ctx context.Context, db *sql.DB) error {
 		return fmt.Errorf("ERROR %v: failed to run SQL migration: %w", filepath.Base(m.Source), err)
 	}
 	finish := time.Since(start)
+
+	//nolint:forbidigo // FP
 	fmt.Printf("\nmigration execution time: %d ms\n", finish)
 	return nil
 }
 
+// проверка, что схемы еще нет
 func CheckExistScheme(ctx context.Context, db *sql.DB) bool {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {

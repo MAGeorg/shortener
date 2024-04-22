@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// кастомный тип ResponseData, содержащий статус запроса и размер ответа
 type ResponseData struct {
 	status int
 	size   int
@@ -28,16 +29,19 @@ func (l *loggingResponseWriter) WriteHeader(statusCode int) {
 	l.responseData.status = statusCode
 }
 
+// структура логгера
 type Logger struct {
 	logger *zap.SugaredLogger
 }
 
+// создание нового экземпляра логгера Middleware
 func NewLogMiddleware(lg *zap.SugaredLogger) *Logger {
 	return &Logger{
 		logger: lg,
 	}
 }
 
+// метод, реализующий обертку логгера над основной логикой endpoint
 func (lg *Logger) LogMiddleware(h http.HandlerFunc) http.Handler {
 	logFunc := func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -63,7 +67,6 @@ func (lg *Logger) LogMiddleware(h http.HandlerFunc) http.Handler {
 			"duration", duration,
 			"size payload", responseData.size,
 		)
-
 	}
 
 	return http.HandlerFunc(logFunc)

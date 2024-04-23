@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -186,13 +187,14 @@ func TestRestoreData(t *testing.T) {
 	producer, err = NewProducer(path)
 	asserts.Empty(err)
 	storURL := NewStorageURLinFile(producer)
+	ctx := context.Background()
 
 	t.Run("test restore data 1", func(_ *testing.T) {
 		err := storURL.RestoreData(path)
 		asserts.Empty(err)
 
 		for _, w := range want {
-			v, err := storURL.GetOriginURL(w.hash)
+			v, err := storURL.GetOriginURL(ctx, w.hash)
 			asserts.Empty(err)
 			asserts.Equal(w.wantURL, v)
 		}

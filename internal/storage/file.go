@@ -3,6 +3,7 @@ package storage
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -30,7 +31,7 @@ func NewStorageURLinFile(s *Producer) *StorageURLinFile {
 }
 
 // создание записи в файле с новым сокращенным URL
-func (s *StorageURLinFile) CreateShotURL(url string, h uint32) (string, error) {
+func (s *StorageURLinFile) CreateShotURL(ctx context.Context, url string, h uint32) (string, error) {
 	// проверяем, есть ли уже запись в файле и локальном кэше
 	if _, ok := s.savedURL[h]; ok {
 		return strconv.FormatUint(uint64(h), 10), nil
@@ -46,7 +47,7 @@ func (s *StorageURLinFile) CreateShotURL(url string, h uint32) (string, error) {
 }
 
 // получение из БД изначального запроса по hash
-func (s *StorageURLinFile) GetOriginURL(str string) (string, error) {
+func (s *StorageURLinFile) GetOriginURL(ctx context.Context, str string) (string, error) {
 	// преобразование строки с HashURL в uint32
 	urlHash, err := strconv.ParseUint(str, 10, 32)
 	if err != nil {
@@ -59,6 +60,11 @@ func (s *StorageURLinFile) GetOriginURL(str string) (string, error) {
 		return "", fmt.Errorf("not found url by hash")
 	}
 	return urlOrig, nil
+}
+
+// функция для добавления в файл данных пачкой
+func (s *StorageURLinFile) CreateShotURLBatch(context.Context, []models.DataBatch) error {
+	return nil
 }
 
 // функция восстановления данных и записи в хранилище в памяти

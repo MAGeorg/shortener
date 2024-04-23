@@ -19,3 +19,10 @@ type Event struct {
 	HashURL uint32 `json:"short_url"`
 	URL     string `json:"original_url"`
 }
+
+// структура для обработки тела запроса батчами
+type DataBatch struct {
+	CorrelationID string `json:"correlation_id"`
+	OriginURL     string `json:"original_url,omitempty"`
+	ShortURL      uint32 `json:"short_url,omitempty"`
+}

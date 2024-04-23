@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -30,11 +31,14 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	urlHash, err := core.CreateShotURL(&core.InputValueForWriteFile{
-		Stor:        h.a.StorageURL,
-		BaseAddress: h.a.BaseAddress,
-		URL:         string(urlStr),
-	})
+	ctx := context.Background()
+	urlHash, err := core.CreateShotURL(
+		ctx,
+		&core.InputValueForWriteFile{
+			Stor:        h.a.StorageURL,
+			BaseAddress: h.a.BaseAddress,
+			URL:         string(urlStr),
+		})
 
 	if err != nil {
 		// ошибка при генерации сокращенного URL, возращаем 500
@@ -62,7 +66,8 @@ func (h *AppHandler) GetOriginURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url, err := core.GetOriginURL(h.a.StorageURL, r.URL.String()[1:])
+	ctx := context.Background()
+	url, err := core.GetOriginURL(ctx, h.a.StorageURL, r.URL.String()[1:])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -96,11 +101,14 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	urlHash, err := core.CreateShotURL(&core.InputValueForWriteFile{
-		Stor:        h.a.StorageURL,
-		BaseAddress: h.a.BaseAddress,
-		URL:         urlJSON.URL,
-	})
+	ctx := context.Background()
+	urlHash, err := core.CreateShotURL(
+		ctx,
+		&core.InputValueForWriteFile{
+			Stor:        h.a.StorageURL,
+			BaseAddress: h.a.BaseAddress,
+			URL:         urlJSON.URL,
+		})
 
 	if err != nil {
 		// ошибка при генерации сокращенного URL, возращаем 500
@@ -134,5 +142,51 @@ func (h *AppHandler) PingDB(w http.ResponseWriter, _ *http.Request) {
 }
 
 // обработка POST запроса для создания сокращенных url для списка url
-func (h *AppHandler) CreateHashURLBatchJSON(_ http.ResponseWriter, _ *http.Request) {
+func (h *AppHandler) CreateHashURLBatchJSON(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	defer r.Body.Close()
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
+	// проверка, что на вход пришел не пустой body
+	if len(data) == 0 {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
+	// преобразуем bytes (JSON) в map
+	var batchJSON []models.DataBatch
+	if err := json.Unmarshal(data, &batchJSON); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	ctx := context.Background()
+	res, err := core.CreateShotURLBatch(ctx, batchJSON)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// формируем body ответа
+	w.WriteHeader(http.StatusCreated)
+	var b []byte
+
+	if len(res) > 0 {
+		b, err = json.Marshal(res)
+		if err != nil {
+			// ошибка при сериализации JSON объекта
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}
+
+	if _, err := w.Write(b); err != nil {
+		// ошибка при записи ответа в Body, возращаем 500
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
 }

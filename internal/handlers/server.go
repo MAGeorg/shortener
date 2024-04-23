@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/MAGeorg/shortener.git/internal/appdata"
@@ -21,10 +20,12 @@ func RunServer(address string, a *appdata.AppData) error {
 	r.Method("POST", "/", lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.CreateHashURL))))
 	r.Method("POST", "/api/shorten",
 		lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.CreateHashURLJSON))))
+	r.Method("POST", "/api/shorten/batch",
+		lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.CreateHashURLBatchJSON))))
 	r.Method("GET", "/{id}", lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.GetOriginURL))))
 	r.Method("GET", "/ping", lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.PingDB))))
 
-	log.Printf("Server run on %s address ...", address)
+	a.Logger.Infof("Server run on %s address ...", address)
 	//nolint:gosec // no matter in this
 	if err := http.ListenAndServe(address, r); err != nil {
 		return err

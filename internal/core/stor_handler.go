@@ -2,12 +2,14 @@
 package core
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
 	// подключение драйвера PostgreSQL.
 	_ "github.com/jackc/pgx/v5/stdlib"
 
+	"github.com/MAGeorg/shortener.git/internal/models"
 	"github.com/MAGeorg/shortener.git/internal/storage"
 	"github.com/MAGeorg/shortener.git/internal/utils"
 )
@@ -20,13 +22,13 @@ type InputValueForWriteFile struct {
 }
 
 // функция реализует бизнес логику обработки начального URL.
-func CreateShotURL(i *InputValueForWriteFile) (string, error) {
+func CreateShotURL(ctx context.Context, i *InputValueForWriteFile) (string, error) {
 	if !utils.CheckURL(i.URL) {
 		return "", fmt.Errorf("not valid url")
 	}
 
 	h := utils.GetHash(i.URL)
-	urlHash, err := i.Stor.CreateShotURL(i.URL, h)
+	urlHash, err := i.Stor.CreateShotURL(ctx, i.URL, h)
 
 	if err != nil {
 		return "", fmt.Errorf("error add url to storage: %w", err)
@@ -35,8 +37,8 @@ func CreateShotURL(i *InputValueForWriteFile) (string, error) {
 }
 
 // функция реализует бизнес логику получения начального URL.
-func GetOriginURL(stor storage.Storage, hash string) (string, error) {
-	url, err := stor.GetOriginURL(hash)
+func GetOriginURL(ctx context.Context, stor storage.Storage, hash string) (string, error) {
+	url, err := stor.GetOriginURL(ctx, hash)
 	if err != nil {
 		return "", fmt.Errorf("error get value from storage: %w", err)
 	}
@@ -65,4 +67,20 @@ func ConnectDB(dsn string) (*sql.DB, error) {
 		return nil, err
 	}
 	return conn, nil
+}
+
+// функция реализующая бизнес логику обработки batch json
+func CreateShotURLBatch(ctx context.Context, d []models.DataBatch) ([]models.DataBatch, error) {
+	res := []models.DataBatch{}
+
+	// заполняем сокращенный url и результат обработки
+	for _, i := range d {
+		i.ShortURL = utils.GetHash(i.OriginURL)
+		res = append(res, models.DataBatch{
+			CorrelationID: i.CorrelationID,
+			ShortURL:      i.ShortURL,
+		})
+	}
+
+	return res, nil
 }

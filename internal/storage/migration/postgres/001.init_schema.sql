@@ -2,7 +2,7 @@
 
 CREATE TABLE shot_url (
     id         SERIAL  NOT NULL,
-    hash_value INTEGER NOT NULL,
+    hash_value BIGINT NOT NULL,
     origin_url TEXT    UNIQUE,
     PRIMARY KEY (id)
 );

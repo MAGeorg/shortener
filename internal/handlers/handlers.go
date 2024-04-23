@@ -3,11 +3,13 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 
 	"github.com/MAGeorg/shortener.git/internal/appdata"
 	"github.com/MAGeorg/shortener.git/internal/core"
+	customerr "github.com/MAGeorg/shortener.git/internal/errors"
 	"github.com/MAGeorg/shortener.git/internal/models"
 	"github.com/MAGeorg/shortener.git/internal/utils"
 )
@@ -40,15 +42,22 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 			URL:         string(urlStr),
 		})
 
-	if err != nil {
-		// ошибка при генерации сокращенного URL, возращаем 500
+	switch {
+	// проверка на ошибку unique_violation
+	case errors.Is(err, customerr.ErrAccessDenied):
+		w.WriteHeader(http.StatusConflict)
+
+	// ошибка при генерации сокращенного URL, возращаем 500
+	case err != nil:
 		h.a.Logger.Errorln("error create new record", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	}
 
 	// формирование положительного ответа
-	w.WriteHeader(http.StatusCreated)
+	default:
+		w.WriteHeader(http.StatusCreated)
+	}
+
 	_, err = w.Write([]byte(urlHash))
 	if err != nil {
 		// ошибка при записи ответа в Body, возращаем 500
@@ -110,14 +119,21 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 			URL:         urlJSON.URL,
 		})
 
-	if err != nil {
-		// ошибка при генерации сокращенного URL, возращаем 500
+	switch {
+	// проверка на ошибку unique_violation
+	case errors.Is(err, customerr.ErrAccessDenied):
+		w.WriteHeader(http.StatusConflict)
+
+	// ошибка при генерации сокращенного URL, возращаем 500
+	case err != nil:
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	}
 
 	// формирование положительного ответа
-	w.WriteHeader(http.StatusCreated)
+	default:
+		w.WriteHeader(http.StatusCreated)
+	}
+
 	resp, err := json.Marshal(models.ResponseHashURL{URL: urlHash})
 	if err != nil {
 		// ошибка при сериализации JSON объекта

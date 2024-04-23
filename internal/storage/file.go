@@ -39,7 +39,7 @@ func (s *StorageURLinFile) CreateShotURL(_ context.Context, url string, h uint32
 
 	err := s.Producer.WriteEvent(&models.Event{ID: s.lastID, HashURL: h, URL: url})
 	if err != nil {
-		return "", fmt.Errorf("error write value in file")
+		return strconv.FormatUint(uint64(h), 10), fmt.Errorf("error write value in file")
 	}
 	s.savedURL[h] = url
 	s.lastID++

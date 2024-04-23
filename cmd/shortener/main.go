@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	// константа для считывания миграций, если используется чистый sql
 	source = "../../internal/storage/migration/postgres/001.init_schema.sql"
 )
 

@@ -6,7 +6,9 @@ import (
 	"database/sql"
 	"strconv"
 
+	customerr "github.com/MAGeorg/shortener.git/internal/errors"
 	"github.com/MAGeorg/shortener.git/internal/models"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // структура хранилища БД
@@ -27,11 +29,12 @@ func NewStorageURLinDB(c *sql.DB) *StorageURLinDB {
 func (s *StorageURLinDB) CreateShotURL(ctx context.Context, url string, h uint32) (string, error) {
 	_, err := s.conn.ExecContext(ctx,
 		"INSERT INTO shot_url (hash_value, origin_url) VALUES ($1,$2);", h, url)
-	if err != nil {
-		return "", err
-	}
 
-	return strconv.FormatUint(uint64(h), 10), nil
+	// проверка на дубликат
+	if driverErr, ok := err.(*pgconn.PgError); ok && driverErr.Code == "23505" {
+		return strconv.FormatUint(uint64(h), 10), customerr.ErrAccessDenied
+	}
+	return strconv.FormatUint(uint64(h), 10), err
 }
 
 // получение из БД изначального запроса по hash

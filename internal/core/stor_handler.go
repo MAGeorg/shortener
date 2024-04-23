@@ -31,7 +31,7 @@ func CreateShotURL(ctx context.Context, i *InputValueForWriteFile) (string, erro
 	urlHash, err := i.Stor.CreateShotURL(ctx, i.URL, h)
 
 	if err != nil {
-		return "", fmt.Errorf("error add url to storage: %w", err)
+		return fmt.Sprintf("%s/%s", i.BaseAddress, urlHash), fmt.Errorf("error add url to storage: %w", err)
 	}
 	return fmt.Sprintf("%s/%s", i.BaseAddress, urlHash), nil
 }

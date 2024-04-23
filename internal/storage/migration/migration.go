@@ -8,11 +8,14 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/MAGeorg/shortener.git/internal/storage/migration/postgres"
 )
 
 // структура миграцмий, на данный момент содержит путь до одного файла с миграцими
 type Migration struct {
 	Source string
+	Flag   string
 }
 
 // Up runs an up migration.
@@ -44,27 +47,44 @@ func (m *Migration) DownContext(ctx context.Context, db *sql.DB) error {
 }
 
 func (m *Migration) run(ctx context.Context, db *sql.DB) error {
-	f, err := os.Open(m.Source)
-	if err != nil {
-		return fmt.Errorf("error %v: failed to open SQL migration file: %w", filepath.Base(m.Source), err)
-	}
-	defer f.Close()
+	switch m.Flag {
+	case "sql":
+		f, err := os.Open(m.Source)
+		if err != nil {
+			return fmt.Errorf("error %v: failed to open SQL migration file: %w", filepath.Base(m.Source), err)
+		}
+		defer f.Close()
 
-	statements, err := ParseSQLMigration(f)
-	if err != nil {
-		return fmt.Errorf("error %v: failed to parse SQL migration file: %w", filepath.Base(m.Source), err)
-	}
-	fmt.Println("success read init migration scheme")
+		statements, err := ParseSQLMigration(f)
+		if err != nil {
+			return fmt.Errorf("error %v: failed to parse SQL migration file: %w", filepath.Base(m.Source), err)
+		}
+		fmt.Println("success read init migration scheme")
 
-	start := time.Now()
-	if err := runSQLMigration(ctx, db, statements[0]); err != nil {
-		fmt.Printf("error run sql migration: %s", err.Error())
-		return fmt.Errorf("error %v: failed to run SQL migration: %w", filepath.Base(m.Source), err)
-	}
-	finish := time.Since(start)
+		start := time.Now()
+		if err := runSQLMigration(ctx, db, statements[0]); err != nil {
+			fmt.Printf("error run sql migration: %s", err.Error())
+			return fmt.Errorf("error %v: failed to run SQL migration: %w", filepath.Base(m.Source), err)
+		}
+		finish := time.Since(start)
 
-	//nolint:forbidigo // FP
-	fmt.Printf("\nmigration execution time: %d ms\n", finish)
+		//nolint:forbidigo // FP
+		fmt.Printf("\nmigration execution time: %d ms\n", finish)
+
+	case "go":
+		queueUP := postgres.Up()
+
+		start := time.Now()
+		if err := runSQLMigration(ctx, db, queueUP); err != nil {
+			fmt.Printf("error run sql migration: %s", err.Error())
+			return fmt.Errorf("error up go-migration: failed to run SQL migration: %w", err)
+		}
+		finish := time.Since(start)
+
+		//nolint:forbidigo // FP
+		fmt.Printf("\nmigration execution time: %d ms\n", finish)
+	}
+
 	return nil
 }
 

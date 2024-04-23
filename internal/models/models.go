@@ -24,5 +24,6 @@ type Event struct {
 type DataBatch struct {
 	CorrelationID string `json:"correlation_id"`
 	OriginURL     string `json:"original_url,omitempty"`
-	ShortURL      uint32 `json:"short_url,omitempty"`
+	Hash          uint32 `json:"-"`
+	ShortURL      string `json:"short_url,omitempty"`
 }

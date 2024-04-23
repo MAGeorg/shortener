@@ -56,6 +56,28 @@ func (s *StorageURLinDB) GetOriginURL(ctx context.Context, str string) (string, 
 }
 
 // добавление в БД значений пачкой
-func (s *StorageURLinDB) CreateShotURLBatch(context.Context, []models.DataBatch) error {
+func (s *StorageURLinDB) CreateShotURLBatch(ctx context.Context, d []models.DataBatch) error {
+	// начинаем транзакцию
+	tx, err := s.conn.Begin()
+	if err != nil {
+		return err
+	}
+
+	// выполняем запись
+	for _, i := range d {
+		_, err := tx.ExecContext(ctx,
+			"INSERT INTO shot_url (hash_value, origin_url) VALUES ($1,$2);", i.Hash, i.OriginURL)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+	}
+
+	// коммитим изменения
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

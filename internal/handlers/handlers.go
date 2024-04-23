@@ -166,7 +166,7 @@ func (h *AppHandler) CreateHashURLBatchJSON(w http.ResponseWriter, r *http.Reque
 	}
 
 	ctx := context.Background()
-	res, err := core.CreateShotURLBatch(ctx, batchJSON)
+	res, err := core.CreateShotURLBatch(ctx, h.a.StorageURL, h.a.BaseAddress, batchJSON)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -188,5 +188,4 @@ func (h *AppHandler) CreateHashURLBatchJSON(w http.ResponseWriter, r *http.Reque
 		// ошибка при записи ответа в Body, возращаем 500
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-
 }

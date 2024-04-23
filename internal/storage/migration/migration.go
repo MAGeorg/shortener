@@ -54,10 +54,12 @@ func (m *Migration) run(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		return fmt.Errorf("error %v: failed to parse SQL migration file: %w", filepath.Base(m.Source), err)
 	}
+	fmt.Println("success read init migration scheme")
 
 	start := time.Now()
 	if err := runSQLMigration(ctx, db, statements[0]); err != nil {
-		return fmt.Errorf("ERROR %v: failed to run SQL migration: %w", filepath.Base(m.Source), err)
+		fmt.Printf("error run sql migration: %s", err.Error())
+		return fmt.Errorf("error %v: failed to run SQL migration: %w", filepath.Base(m.Source), err)
 	}
 	finish := time.Since(start)
 

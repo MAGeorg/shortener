@@ -62,7 +62,7 @@ func main() {
 			migrate := migration.Migration{Source: source}
 			err = migrate.Up(conn)
 			if err != nil {
-				lg.Errorln("error execute migrate")
+				lg.Errorln("error execute migrate", err)
 			}
 		}
 

@@ -70,16 +70,22 @@ func ConnectDB(dsn string) (*sql.DB, error) {
 }
 
 // функция реализующая бизнес логику обработки batch json
-func CreateShotURLBatch(ctx context.Context, d []models.DataBatch) ([]models.DataBatch, error) {
+func CreateShotURLBatch(ctx context.Context, stor storage.Storage,
+	base string, d []models.DataBatch) ([]models.DataBatch, error) {
 	res := []models.DataBatch{}
 
 	// заполняем сокращенный url и результат обработки
-	for _, i := range d {
-		i.ShortURL = utils.GetHash(i.OriginURL)
+	for i := range d {
+		d[i].Hash = utils.GetHash(d[i].OriginURL)
 		res = append(res, models.DataBatch{
-			CorrelationID: i.CorrelationID,
-			ShortURL:      i.ShortURL,
+			CorrelationID: d[i].CorrelationID,
+			ShortURL:      fmt.Sprintf("%s/%d", base, d[i].Hash),
 		})
+	}
+
+	err := stor.CreateShotURLBatch(ctx, d)
+	if err != nil {
+		return res, err
 	}
 
 	return res, nil

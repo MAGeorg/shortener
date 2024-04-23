@@ -31,7 +31,7 @@ func NewStorageURLinFile(s *Producer) *StorageURLinFile {
 }
 
 // создание записи в файле с новым сокращенным URL
-func (s *StorageURLinFile) CreateShotURL(ctx context.Context, url string, h uint32) (string, error) {
+func (s *StorageURLinFile) CreateShotURL(_ context.Context, url string, h uint32) (string, error) {
 	// проверяем, есть ли уже запись в файле и локальном кэше
 	if _, ok := s.savedURL[h]; ok {
 		return strconv.FormatUint(uint64(h), 10), nil
@@ -47,7 +47,7 @@ func (s *StorageURLinFile) CreateShotURL(ctx context.Context, url string, h uint
 }
 
 // получение из БД изначального запроса по hash
-func (s *StorageURLinFile) GetOriginURL(ctx context.Context, str string) (string, error) {
+func (s *StorageURLinFile) GetOriginURL(_ context.Context, str string) (string, error) {
 	// преобразование строки с HashURL в uint32
 	urlHash, err := strconv.ParseUint(str, 10, 32)
 	if err != nil {
@@ -63,7 +63,19 @@ func (s *StorageURLinFile) GetOriginURL(ctx context.Context, str string) (string
 }
 
 // функция для добавления в файл данных пачкой
-func (s *StorageURLinFile) CreateShotURLBatch(context.Context, []models.DataBatch) error {
+func (s *StorageURLinFile) CreateShotURLBatch(_ context.Context, d []models.DataBatch) error {
+	for _, i := range d {
+		if _, ok := s.savedURL[i.Hash]; ok {
+			continue
+		}
+
+		err := s.Producer.WriteEvent(&models.Event{ID: s.lastID, HashURL: i.Hash, URL: i.OriginURL})
+		if err != nil {
+			return fmt.Errorf("error write value in file")
+		}
+		s.savedURL[i.Hash] = i.OriginURL
+		s.lastID++
+	}
 	return nil
 }
 

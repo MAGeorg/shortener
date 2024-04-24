@@ -69,12 +69,12 @@ func ConnectDB(dsn string) (*sql.DB, error) {
 	return conn, nil
 }
 
-// функция реализующая бизнес логику обработки batch json
+// функция реализующая бизнес логику обработки batch json.
 func CreateShotURLBatch(ctx context.Context, stor storage.Storage,
 	base string, d []models.DataBatch) ([]models.DataBatch, error) {
 	res := []models.DataBatch{}
 
-	// заполняем сокращенный url и результат обработки
+	// заполняем сокращенный url и результат обработки.
 	for i := range d {
 		d[i].Hash = utils.GetHash(d[i].OriginURL)
 		res = append(res, models.DataBatch{

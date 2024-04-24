@@ -1,4 +1,4 @@
-// пакет, реализующий middleware сжатие данных
+// пакет, реализующий middleware сжатие данных.
 package middleware
 
 import (
@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+//nolint:gochecknoglobals // var into local packet
 var supportContentCompressEnpoint = []string{
 	"/api/shorten",
 }
@@ -82,7 +83,7 @@ func checkReturnContent(uri string) bool {
 }
 
 // функция middleware сжатия body ответов
-// и обработки сжатых body запросов
+// и обработки сжатых body запросов.
 func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	gzipfunc := func(w http.ResponseWriter, r *http.Request) {
 		ow := w

@@ -1,4 +1,4 @@
-// пакет для работы с БД в качестве хранилища
+// пакет для работы с БД в качестве хранилища.
 package storage
 
 import (
@@ -11,21 +11,21 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-// структура хранилища БД
+// структура хранилища БД.
 //
 //nolint:revive // FP
 type StorageURLinDB struct {
 	conn *sql.DB
 }
 
-// создание нового экземпляра хранилища
+// создание нового экземпляра хранилища.
 func NewStorageURLinDB(c *sql.DB) *StorageURLinDB {
 	return &StorageURLinDB{
 		conn: c,
 	}
 }
 
-// создание записи в БД с новым сокращенным URL
+// создание записи в БД с новым сокращенным URL.
 func (s *StorageURLinDB) CreateShotURL(ctx context.Context, url string, h uint32) (string, error) {
 	_, err := s.conn.ExecContext(ctx,
 		"INSERT INTO shot_url (hash_value, origin_url) VALUES ($1,$2);", h, url)
@@ -37,7 +37,7 @@ func (s *StorageURLinDB) CreateShotURL(ctx context.Context, url string, h uint32
 	return strconv.FormatUint(uint64(h), 10), err
 }
 
-// получение из БД изначального запроса по hash
+// получение из БД изначального запроса по hash.
 func (s *StorageURLinDB) GetOriginURL(ctx context.Context, str string) (string, error) {
 	res, err := s.conn.QueryContext(ctx,
 		"SELECT origin_url FROM shot_url WHERE hash_value = $1;", str)
@@ -58,15 +58,15 @@ func (s *StorageURLinDB) GetOriginURL(ctx context.Context, str string) (string, 
 	return url, nil
 }
 
-// добавление в БД значений пачкой
+// добавление в БД значений пачкой.
 func (s *StorageURLinDB) CreateShotURLBatch(ctx context.Context, d []models.DataBatch) error {
-	// начинаем транзакцию
+	// начинаем транзакцию.
 	tx, err := s.conn.Begin()
 	if err != nil {
 		return err
 	}
 
-	// выполняем запись
+	// выполняем запись.
 	for _, i := range d {
 		_, err := tx.ExecContext(ctx,
 			"INSERT INTO shot_url (hash_value, origin_url) VALUES ($1,$2);", i.Hash, i.OriginURL)
@@ -76,7 +76,7 @@ func (s *StorageURLinDB) CreateShotURLBatch(ctx context.Context, d []models.Data
 		}
 	}
 
-	// коммитим изменения
+	// коммитим изменения.
 	err = tx.Commit()
 	if err != nil {
 		return err

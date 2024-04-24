@@ -1,4 +1,4 @@
-// пакет содержащий логику логера
+// пакет содержащий логику логера.
 package logger
 
 import (
@@ -7,10 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// Sugar логгер
-var Sugar zap.SugaredLogger
-
-// структура лога для middleware лога
+// структура лога для middleware лога.
 type LogStruct struct {
 	URI      string
 	Method   string
@@ -19,7 +16,7 @@ type LogStruct struct {
 	Size     int
 }
 
-// получение нового экземпляра логгера
+// получение нового экземпляра логгера.
 func NewLogger() (*zap.SugaredLogger, error) {
 	logger, err := zap.NewDevelopment()
 	if err != nil {

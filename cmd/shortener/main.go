@@ -2,7 +2,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/MAGeorg/shortener.git/internal/appdata"
@@ -15,8 +14,8 @@ import (
 )
 
 const (
-	// константа для считывания миграций, если используется чистый sql
-	source = "../../internal/storage/migration/postgres/001.init_schema.sql"
+	// константа для считывания миграций, если используется чистый sql.
+	sourceMigration = "../../internal/storage/migration/postgres/001.init_schema.sql"
 )
 
 func main() {
@@ -60,14 +59,11 @@ func main() {
 			return
 		}
 
-		// проверяем есть ли схема
-		if res := migration.CheckExistScheme(context.Background(), conn); !res {
-			// выполняем go-миграцию если схемы нет
-			migrate := migration.Migration{Source: source, Flag: "go"}
-			err = migrate.Up(conn)
-			if err != nil {
-				lg.Errorln("error execute migrate", err)
-			}
+		// выполняем go-миграцию
+		migrate := migration.Migration{Source: sourceMigration, Flag: "go"}
+		err = migrate.Up(conn)
+		if err != nil {
+			lg.Errorln("error execute migrate", err)
 		}
 
 		storURL := storage.NewStorageURLinDB(conn)

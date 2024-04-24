@@ -1,4 +1,4 @@
-// пакет, реализующий работу с миграциями
+// пакет, реализующий работу с миграциями.
 package migration
 
 import (
@@ -12,7 +12,7 @@ import (
 	"github.com/MAGeorg/shortener.git/internal/storage/migration/postgres"
 )
 
-// структура миграцмий, на данный момент содержит путь до одного файла с миграцими
+// структура миграцмий, на данный момент содержит путь до одного файла с миграцими.
 type Migration struct {
 	Source string
 	Flag   string
@@ -26,8 +26,11 @@ func (m *Migration) Up(db *sql.DB) error {
 
 // UpContext runs an up migration.
 func (m *Migration) UpContext(ctx context.Context, db *sql.DB) error {
-	if err := m.run(ctx, db); err != nil {
-		return err
+	// проверка наличие схемы.
+	if res := CheckExistScheme(ctx, db); !res {
+		if err := m.run(ctx, db); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -88,7 +91,7 @@ func (m *Migration) run(ctx context.Context, db *sql.DB) error {
 	return nil
 }
 
-// проверка, что схемы еще нет
+// проверка, что схемы еще нет.
 func CheckExistScheme(ctx context.Context, db *sql.DB) bool {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {

@@ -19,9 +19,9 @@ import (
 func TestCreateHashURL(t *testing.T) {
 	// структура для хранения ожидаемых значений
 	type want struct {
-		code        int
 		body        string
 		contentType string
+		code        int
 	}
 
 	// структура для хранения данных для запросов
@@ -121,9 +121,9 @@ func TestCreateHashURL(t *testing.T) {
 func TestGetOriginURL(t *testing.T) {
 	// структура для хранения ожидаемых значений
 	type want struct {
-		code        int
 		body        string
 		contentType string
+		code        int
 	}
 
 	// структура для хранения данных для запросов
@@ -247,9 +247,9 @@ func TestGetOriginURL(t *testing.T) {
 func TestCreateHashURLJSON(t *testing.T) {
 	// структура для хранения ожидаемых значений
 	type want struct {
-		code        int
 		body        string
 		contentType string
+		code        int
 	}
 
 	// структура для хранения данных для запросов

@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// функция инициализации endpoint и запуска сервера
+// функция инициализации endpoint и запуска сервера.
 func RunServer(address string, a *appdata.AppData) error {
 	h := AppHandler{a}
 	lgMiddleware := logger.NewLogMiddleware(a.Logger)

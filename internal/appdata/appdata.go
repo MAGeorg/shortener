@@ -9,10 +9,12 @@ import (
 
 // структура AppData содержит base адрес для сокрещенного url
 // хранилище, логгер.
+//
+//nolint:govet // FP
 type AppData struct {
 	BaseAddress string
-	StorageURL  storage.Storage
 	DSNdatabase string
+	StorageURL  storage.Storage
 	Logger      *zap.SugaredLogger
 }
 

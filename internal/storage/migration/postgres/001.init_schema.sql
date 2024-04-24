@@ -1,9 +1,9 @@
 -- +migration Up
 
 CREATE TABLE shot_url (
-    id         SERIAL  NOT NULL,
-    hash_value BIGINT NOT NULL,
-    origin_url TEXT    UNIQUE,
+    id         SERIAL NOT NULL,
+    hash_value BIGSERIAL NOT NULL,
+    origin_url VARCHAR(2048) UNIQUE,
     PRIMARY KEY (id)
 );
 

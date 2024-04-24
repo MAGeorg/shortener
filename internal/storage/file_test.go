@@ -143,9 +143,9 @@ func TestRestoreData(t *testing.T) {
 	}
 
 	want := []struct {
-		lastID  int
 		hash    string
 		wantURL string
+		lastID  int
 	}{
 		{
 			lastID:  2,

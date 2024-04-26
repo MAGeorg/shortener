@@ -1,19 +1,114 @@
+// пакет для работы с файлом в качестве хранилища
 package storage
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
+	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/MAGeorg/shortener.git/internal/models"
 )
 
+// структура хранилища файла.
+//
+//nolint:revive // FP
+type StorageURLinFile struct {
+	Producer *Producer
+	savedURL map[uint32]string
+	lastID   int
+}
+
+// получение нового экземпляра хранилища URL по хэшу.
+func NewStorageURLinFile(s *Producer) *StorageURLinFile {
+	return &StorageURLinFile{
+		Producer: s,
+		savedURL: make(map[uint32]string),
+		lastID:   0,
+	}
+}
+
+// создание записи в файле с новым сокращенным URL.
+func (s *StorageURLinFile) CreateShotURL(_ context.Context, url string, h uint32) (string, error) {
+	// проверяем, есть ли уже запись в файле и локальном кэше.
+	if _, ok := s.savedURL[h]; ok {
+		return strconv.FormatUint(uint64(h), 10), nil
+	}
+
+	err := s.Producer.WriteEvent(&models.Event{ID: s.lastID, HashURL: h, URL: url})
+	if err != nil {
+		return strconv.FormatUint(uint64(h), 10), fmt.Errorf("error write value in file")
+	}
+	s.savedURL[h] = url
+	s.lastID++
+	return strconv.FormatUint(uint64(h), 10), nil
+}
+
+// получение из БД изначального запроса по hash.
+func (s *StorageURLinFile) GetOriginURL(_ context.Context, str string) (string, error) {
+	// преобразование строки с HashURL в uint32.
+	urlHash, err := strconv.ParseUint(str, 10, 32)
+	if err != nil {
+		return "", fmt.Errorf("incorrect hash")
+	}
+
+	// поиск оригинального адреса по HashURL.
+	urlOrig, ok := s.savedURL[uint32(urlHash)]
+	if !ok {
+		return "", fmt.Errorf("not found url by hash")
+	}
+	return urlOrig, nil
+}
+
+// функция для добавления в файл данных пачкой.
+func (s *StorageURLinFile) CreateShotURLBatch(_ context.Context, d []models.DataBatch) error {
+	for _, i := range d {
+		if _, ok := s.savedURL[i.Hash]; ok {
+			continue
+		}
+
+		err := s.Producer.WriteEvent(&models.Event{ID: s.lastID, HashURL: i.Hash, URL: i.OriginURL})
+		if err != nil {
+			return fmt.Errorf("error write value in file")
+		}
+		s.savedURL[i.Hash] = i.OriginURL
+		s.lastID++
+	}
+	return nil
+}
+
+// функция восстановления данных и записи в хранилище в памяти.
+func (s *StorageURLinFile) RestoreData(path string) error {
+	var lastID int
+	consumer, err := NewConsumer(path)
+	if err != nil {
+		return err
+	}
+	defer consumer.Close()
+
+	for {
+		e, err := consumer.ReadEvent()
+		if err != nil || e == nil {
+			break
+		}
+		lastID = e.ID
+		s.savedURL[e.HashURL] = e.URL
+	}
+	s.lastID = lastID
+	//nolint:nilerr // на 74 строке ошибка считывания EOF.
+	return nil
+}
+
+// структура Consumer, содержит указатель на файл, с которым работаем.
+// и scanner.
 type Consumer struct {
-	file *os.File
-	// заменяем Reader на Scanner
+	file    *os.File
 	scanner *bufio.Scanner
 }
 
+// создание экземпляра Consumer.
 func NewConsumer(filename string) (*Consumer, error) {
 	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
@@ -26,6 +121,7 @@ func NewConsumer(filename string) (*Consumer, error) {
 	}, nil
 }
 
+// запись consumer события (новой записи сокращенного URL).
 func (c *Consumer) ReadEvent() (*models.Event, error) {
 	if !c.scanner.Scan() {
 		return nil, c.scanner.Err()
@@ -41,37 +137,19 @@ func (c *Consumer) ReadEvent() (*models.Event, error) {
 	return &event, nil
 }
 
+// закрывает файл, с которым работает consumer.
 func (c *Consumer) Close() error {
 	return c.file.Close()
 }
 
-// функция восстановления данных и записи в хранилище в памяти
-// вернет ID последней записи, чтобы продолжить запись, и ошибку
-func RestoreData(path string, stor *StorageURL) (int, error) {
-	var lastID int
-	consumer, err := NewConsumer(path)
-	if err != nil {
-		return lastID, err
-	}
-	defer consumer.Close()
-
-	for {
-		e, err := consumer.ReadEvent()
-		if err != nil || e == nil {
-			break
-		}
-		lastID = e.ID
-		stor.Add(e.URL, e.HashURL)
-	}
-
-	return lastID, nil
-}
-
+// структура Producer, содержит указать на файл, с которым работает
+// и writer.
 type Producer struct {
 	file   *os.File
 	writer *bufio.Writer
 }
 
+// получение нового экземпляра Producer.
 func NewProducer(filename string) (*Producer, error) {
 	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
@@ -80,11 +158,12 @@ func NewProducer(filename string) (*Producer, error) {
 
 	return &Producer{
 		file: file,
-		// создаём новый Writer
+		// создаём новый Writer.
 		writer: bufio.NewWriter(file),
 	}, nil
 }
 
+// запись.
 func (p *Producer) WriteEvent(event *models.Event) error {
 	data, err := json.Marshal(&event)
 	if err != nil {
@@ -102,6 +181,7 @@ func (p *Producer) WriteEvent(event *models.Event) error {
 	return p.writer.Flush()
 }
 
+// закрытие файла, с которым работает producer.
 func (p *Producer) Close() error {
 	return p.file.Close()
 }

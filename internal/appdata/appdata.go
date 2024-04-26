@@ -1,3 +1,5 @@
+// пакет appdata реализовывает необходимые данные, которые затем встраиваются в
+// в handler.
 package appdata
 
 import (
@@ -5,20 +7,23 @@ import (
 	"go.uber.org/zap"
 )
 
+// структура AppData содержит base адрес для сокрещенного url
+// хранилище, логгер.
+//
+//nolint:govet // FP
 type AppData struct {
 	BaseAddress string
-	StorageURL  *storage.StorageURL
-	LastID      int
+	DSNdatabase string
+	StorageURL  storage.Storage
 	Logger      *zap.SugaredLogger
-	*storage.Producer
 }
 
-func NewAppData(baseAddress string, strg *storage.StorageURL, id int, lg *zap.SugaredLogger, s *storage.Producer) *AppData {
+// возвращает новый экземпляр AppData.
+func NewAppData(baseAddress string, strg storage.Storage, d string, lg *zap.SugaredLogger) *AppData {
 	return &AppData{
 		BaseAddress: baseAddress,
 		StorageURL:  strg,
-		LastID:      id,
+		DSNdatabase: d,
 		Logger:      lg,
-		Producer:    s,
 	}
 }

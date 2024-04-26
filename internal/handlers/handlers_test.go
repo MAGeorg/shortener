@@ -19,9 +19,9 @@ import (
 func TestCreateHashURL(t *testing.T) {
 	// структура для хранения ожидаемых значений
 	type want struct {
-		code        int
 		body        string
 		contentType string
+		code        int
 	}
 
 	// структура для хранения данных для запросов
@@ -88,18 +88,18 @@ func TestCreateHashURL(t *testing.T) {
 	}
 
 	// инициализация хранилища
-	storURL := storage.NewStorageURL()
+	storURL := storage.NewStorageURLinMemory()
 
 	// инициализаниция конфига
 	cfg := config.NewConfig()
 	config.Parse(cfg)
 
 	// инициализация контекста без записи в файл
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, -1, lg, nil)
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, lg)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.name, func(_ *testing.T) {
 			r := httptest.NewRequest(test.req.method, "/", strings.NewReader(test.req.body))
 
 			// заполняем необходимые поля и выставляем ResponseRecorder для записи ответа сервера
@@ -114,7 +114,6 @@ func TestCreateHashURL(t *testing.T) {
 			asserts.Equal(test.want.code, result.StatusCode)
 			asserts.Equal(test.want.contentType, result.Header.Get("Content-Type"))
 			asserts.Contains(w.Body.String(), test.want.body)
-
 		})
 	}
 }
@@ -122,9 +121,9 @@ func TestCreateHashURL(t *testing.T) {
 func TestGetOriginURL(t *testing.T) {
 	// структура для хранения ожидаемых значений
 	type want struct {
-		code        int
 		body        string
 		contentType string
+		code        int
 	}
 
 	// структура для хранения данных для запросов
@@ -204,17 +203,17 @@ func TestGetOriginURL(t *testing.T) {
 	}
 
 	// инициализация хранилища
-	storURL := storage.NewStorageURL()
+	storURL := storage.NewStorageURLinMemory()
 
 	// инициализаниция конфига
 	cfg := config.NewConfig()
 
 	// инициализация контекста без записи в файл
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, -1, lg, nil)
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, lg)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.name, func(_ *testing.T) {
 			var r *http.Request
 			w := httptest.NewRecorder()
 
@@ -241,7 +240,6 @@ func TestGetOriginURL(t *testing.T) {
 			case http.MethodPost:
 				asserts.Contains(w.Body.String(), test.want.body)
 			}
-
 		})
 	}
 }
@@ -249,9 +247,9 @@ func TestGetOriginURL(t *testing.T) {
 func TestCreateHashURLJSON(t *testing.T) {
 	// структура для хранения ожидаемых значений
 	type want struct {
-		code        int
 		body        string
 		contentType string
+		code        int
 	}
 
 	// структура для хранения данных для запросов
@@ -317,13 +315,13 @@ func TestCreateHashURLJSON(t *testing.T) {
 	}
 
 	// инициализация хранилища
-	storURL := storage.NewStorageURL()
+	storURL := storage.NewStorageURLinMemory()
 
 	// инициализаниция конфига
 	cfg := config.NewConfig()
 
 	// инициализация контекста без записи в файл
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, -1, lg, nil)
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, lg)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {

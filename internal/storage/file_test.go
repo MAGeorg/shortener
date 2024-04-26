@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -42,7 +43,7 @@ func TestNewProducer(t *testing.T) {
 	defer producer.Close()
 
 	for i, test := range tests {
-		t.Run(fmt.Sprintf("test-producer-%d", i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("test-producer-%d", i), func(_ *testing.T) {
 			err := producer.WriteEvent(&test)
 			asserts.Empty(err)
 		})
@@ -111,17 +112,15 @@ func TestNewConsumer(t *testing.T) {
 	}()
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.name, func(_ *testing.T) {
 			res, err := consumer.ReadEvent()
 
 			asserts.Empty(err)
 			asserts.Equal(test.want.ID, res.ID)
 			asserts.Equal(test.want.HashURL, res.HashURL)
 			asserts.Equal(test.want.URL, res.URL)
-
 		})
 	}
-
 }
 
 func TestRestoreData(t *testing.T) {
@@ -144,23 +143,23 @@ func TestRestoreData(t *testing.T) {
 	}
 
 	want := []struct {
-		lastID  int
-		hash    uint32
+		hash    string
 		wantURL string
+		lastID  int
 	}{
 		{
 			lastID:  2,
-			hash:    759827921,
+			hash:    "759827921",
 			wantURL: "http://yandex.ru",
 		},
 		{
 			lastID:  2,
-			hash:    759827922,
+			hash:    "759827922",
 			wantURL: "http://ya.ru",
 		},
 		{
 			lastID:  2,
-			hash:    759827923,
+			hash:    "759827923",
 			wantURL: "https://ex.ru",
 		},
 	}
@@ -185,20 +184,19 @@ func TestRestoreData(t *testing.T) {
 	asserts.Empty(err)
 
 	// инициализация хранилища
-	storURL := NewStorageURL()
+	producer, err = NewProducer(path)
+	asserts.Empty(err)
+	storURL := NewStorageURLinFile(producer)
+	ctx := context.Background()
 
-	t.Run("test restore data 1", func(t *testing.T) {
-		lastID, err := RestoreData(path, storURL)
+	t.Run("test restore data 1", func(_ *testing.T) {
+		err := storURL.RestoreData(path)
 		asserts.Empty(err)
 
-		asserts.Equal(want[0].lastID, lastID)
-
 		for _, w := range want {
-			v, err := storURL.Get(w.hash)
+			v, err := storURL.GetOriginURL(ctx, w.hash)
 			asserts.Empty(err)
 			asserts.Equal(w.wantURL, v)
 		}
-
 	})
-
 }

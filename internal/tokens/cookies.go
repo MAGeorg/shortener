@@ -7,7 +7,7 @@ import (
 )
 
 // функция GetValueFromCookie выполняет поиск в cookie по ключу и возвращает значение.
-func GetValueFromCookie(r *http.Request, key string) (value string) {
+func GetValueFromCookie(r *http.Request, key string) string {
 	c := r.Cookies()
 	for _, i := range c {
 		if i.Name == key {

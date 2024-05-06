@@ -18,18 +18,19 @@ type claims struct {
 }
 
 // структура для хранения ID пользователей, которым выдан токен.
-// TODO: добавить логгер
-type TokensID struct {
-	savedID   map[int]struct{}
-	lastID    int
-	secretKey string
-	logger    *zap.SugaredLogger
+//
+//nolint:govet // FP
+type TokenID struct {
 	TokenEXP  time.Duration
+	secretKey string
+	lastID    int
+	logger    *zap.SugaredLogger
+	savedID   map[int]struct{}
 }
 
 // получение нового экземпляра структуры для работы с токенами.
-func NewTokensID(k string, t time.Duration, l *zap.SugaredLogger) *TokensID {
-	return &TokensID{
+func NewTokensID(k string, t time.Duration, l *zap.SugaredLogger) *TokenID {
+	return &TokenID{
 		savedID:   make(map[int]struct{}),
 		lastID:    0,
 		secretKey: k,
@@ -40,7 +41,7 @@ func NewTokensID(k string, t time.Duration, l *zap.SugaredLogger) *TokensID {
 
 // функция CheckToken проверяет токен, если его нет или он не актуален или его нет,
 // то создаем новый.
-func (t *TokensID) CheckToken(tokenString string) (string, error) {
+func (t *TokenID) CheckToken(tokenString string) (string, error) {
 	switch {
 	// выполнить проверку если она пустая или на валидность куки.
 	case tokenString == "" || !t.validToken(tokenString):
@@ -59,7 +60,7 @@ func (t *TokensID) CheckToken(tokenString string) (string, error) {
 }
 
 // функция createNewJWTString создает новый токен.
-func (t *TokensID) createNewJWTString() (string, error) {
+func (t *TokenID) createNewJWTString() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			// когда создан токен
@@ -77,7 +78,7 @@ func (t *TokensID) createNewJWTString() (string, error) {
 }
 
 // функция parseToken выполняет парсинг токена.
-func (t *TokensID) parseToken(tokenString string) (*jwt.Token, *claims, error) {
+func (t *TokenID) parseToken(tokenString string) (*jwt.Token, *claims, error) {
 	c := &claims{}
 	key := t.secretKey
 	token, err := jwt.ParseWithClaims(tokenString, c,
@@ -91,7 +92,7 @@ func (t *TokensID) parseToken(tokenString string) (*jwt.Token, *claims, error) {
 }
 
 // функция validToken выполняет проверку валидности куки.
-func (t *TokensID) validToken(tokenString string) bool {
+func (t *TokenID) validToken(tokenString string) bool {
 	token, _, err := t.parseToken(tokenString)
 	if err != nil {
 		t.logger.Errorln("validToken: error parse jwt from cookie: ", err.Error())
@@ -104,7 +105,7 @@ func (t *TokensID) validToken(tokenString string) bool {
 }
 
 // функция validID выполняет проверку валидности ID в куке.
-func (t *TokensID) validID(tokenString string) bool {
+func (t *TokenID) validID(tokenString string) bool {
 	_, c, err := t.parseToken(tokenString)
 	if err != nil {
 		t.logger.Errorln("validID: error parse jwt from cookie: ", err.Error())

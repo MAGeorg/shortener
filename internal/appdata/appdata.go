@@ -18,11 +18,11 @@ type AppData struct {
 	DSNdatabase string
 	StorageURL  storage.Storage
 	Logger      *zap.SugaredLogger
-	Tokens      *tokens.TokensID
+	Tokens      *tokens.TokenID
 }
 
 // возвращает новый экземпляр AppData.
-func NewAppData(baseAddr string, s storage.Storage, d string, lg *zap.SugaredLogger, t *tokens.TokensID) *AppData {
+func NewAppData(baseAddr string, s storage.Storage, d string, lg *zap.SugaredLogger, t *tokens.TokenID) *AppData {
 	return &AppData{
 		BaseAddress: baseAddr,
 		StorageURL:  s,

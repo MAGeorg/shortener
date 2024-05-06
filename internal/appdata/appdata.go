@@ -3,8 +3,10 @@
 package appdata
 
 import (
-	"github.com/MAGeorg/shortener.git/internal/storage"
 	"go.uber.org/zap"
+
+	"github.com/MAGeorg/shortener.git/internal/storage"
+	"github.com/MAGeorg/shortener.git/internal/tokens"
 )
 
 // структура AppData содержит base адрес для сокрещенного url
@@ -16,14 +18,16 @@ type AppData struct {
 	DSNdatabase string
 	StorageURL  storage.Storage
 	Logger      *zap.SugaredLogger
+	Tokens      *tokens.TokensID
 }
 
 // возвращает новый экземпляр AppData.
-func NewAppData(baseAddress string, strg storage.Storage, d string, lg *zap.SugaredLogger) *AppData {
+func NewAppData(baseAddr string, s storage.Storage, d string, lg *zap.SugaredLogger, t *tokens.TokensID) *AppData {
 	return &AppData{
-		BaseAddress: baseAddress,
-		StorageURL:  strg,
+		BaseAddress: baseAddr,
+		StorageURL:  s,
 		DSNdatabase: d,
 		Logger:      lg,
+		Tokens:      t,
 	}
 }

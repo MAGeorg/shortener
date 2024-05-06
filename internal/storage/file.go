@@ -79,6 +79,18 @@ func (s *StorageURLinFile) CreateShotURLBatch(_ context.Context, d []models.Data
 	return nil
 }
 
+// получение всех пар short_url - original_url.
+func (s *StorageURLinFile) GetAllURL(_ context.Context, baseAddr string) ([]models.DataBatch, error) {
+	res := []models.DataBatch{}
+	for h, val := range s.savedURL {
+		res = append(res, models.DataBatch{
+			ShortURL:  fmt.Sprintf("%s/%s", baseAddr, strconv.FormatUint(uint64(h), 10)),
+			OriginURL: val,
+		})
+	}
+	return res, nil
+}
+
 // функция восстановления данных и записи в хранилище в памяти.
 func (s *StorageURLinFile) RestoreData(path string) error {
 	var lastID int

@@ -4,6 +4,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strconv"
 
 	customerr "github.com/MAGeorg/shortener.git/internal/errors"
@@ -83,4 +84,31 @@ func (s *StorageURLinDB) CreateShotURLBatch(ctx context.Context, d []models.Data
 	}
 
 	return nil
+}
+
+// получение всех пар short_url - original_url.
+func (s *StorageURLinDB) GetAllURL(ctx context.Context, baseAddr string) ([]models.DataBatch, error) {
+	res, err := s.conn.QueryContext(ctx,
+		"SELECT * FROM shot_url")
+	if err != nil || res.Err() != nil {
+		return nil, err
+	}
+
+	defer res.Close()
+
+	r := []models.DataBatch{}
+	var i models.DataBatch
+	for res.Next() {
+		err := res.Scan(&i)
+		if err != nil {
+			return nil, fmt.Errorf("error scan value from db: %w", err)
+		}
+
+		r = append(r, models.DataBatch{
+			ShortURL:  fmt.Sprintf("%s/%s", baseAddr, strconv.FormatUint(uint64(i.Hash), 10)),
+			OriginURL: i.OriginURL,
+		})
+	}
+
+	return r, nil
 }

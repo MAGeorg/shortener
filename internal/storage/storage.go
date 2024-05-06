@@ -14,4 +14,6 @@ type Storage interface {
 	GetOriginURL(context.Context, string) (string, error)
 	// input (context, []models.DataBatch).
 	CreateShotURLBatch(context.Context, []models.DataBatch) error
+	// input (context).
+	GetAllURL(context.Context, string) ([]models.DataBatch, error)
 }

@@ -4,6 +4,7 @@ package core
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	// подключение драйвера PostgreSQL.
@@ -69,7 +70,7 @@ func ConnectDB(dsn string) (*sql.DB, error) {
 	return conn, nil
 }
 
-// функция реализующая бизнес логику обработки batch json.
+// функция, реализующая бизнес логику обработки batch json.
 func CreateShotURLBatch(ctx context.Context, stor storage.Storage,
 	base string, d []models.DataBatch) ([]models.DataBatch, error) {
 	res := []models.DataBatch{}
@@ -89,4 +90,18 @@ func CreateShotURLBatch(ctx context.Context, stor storage.Storage,
 	}
 
 	return res, nil
+}
+
+// функция, реализующая бизнес-логику для получения всех значений short_url - original_url.
+func GetALLURL(ctx context.Context, stor storage.Storage, base string) ([]byte, error) {
+	res, err := stor.GetAllURL(ctx, base)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res) > 0 {
+		b, err := json.Marshal(res)
+		return b, err
+	}
+	return nil, fmt.Errorf("empty result")
 }

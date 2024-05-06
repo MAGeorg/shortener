@@ -22,7 +22,7 @@ type Event struct {
 
 // структура для обработки тела запроса батчами.
 type DataBatch struct {
-	CorrelationID string `json:"correlation_id"`
+	CorrelationID string `json:"correlation_id,omitempty"`
 	OriginURL     string `json:"original_url,omitempty"`
 	ShortURL      string `json:"short_url,omitempty"`
 	Hash          uint32 `json:"-"`

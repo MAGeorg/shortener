@@ -352,7 +352,12 @@ func (h *AppHandler) GetAllUserURL(w http.ResponseWriter, r *http.Request) {
 	// вызов функции бизнес-логики для получения списка всех сокращенны URL.
 	ctx := context.Background()
 	ans, err := core.GetALLURL(ctx, h.a.StorageURL, h.a.BaseAddress)
-	if err != nil && !errors.Is(err, fmt.Errorf("empty result")) {
+	switch {
+	case errors.Is(err, fmt.Errorf("empty result")):
+		h.a.Logger.Infoln("empty result:", err.Error())
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	case err != nil:
 		h.a.Logger.Errorln("error get all short url:", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -13,7 +13,6 @@ import (
 	customerr "github.com/MAGeorg/shortener.git/internal/errors"
 	"github.com/MAGeorg/shortener.git/internal/models"
 	"github.com/MAGeorg/shortener.git/internal/tokens"
-	"github.com/MAGeorg/shortener.git/internal/utils"
 )
 
 // структура содержащая необходимые данные для обработки запросов
@@ -56,7 +55,7 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 	urlStr, err := io.ReadAll(r.Body)
 
 	// проверка входящего URL.
-	if err != nil || !utils.CheckURL(string(urlStr)) {
+	if err != nil || !CheckURL(string(urlStr)) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
@@ -177,7 +176,7 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !utils.CheckURL(urlJSON.URL) {
+	if !CheckURL(urlJSON.URL) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}

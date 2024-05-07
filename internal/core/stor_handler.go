@@ -10,9 +10,9 @@ import (
 	// подключение драйвера PostgreSQL.
 	_ "github.com/jackc/pgx/v5/stdlib"
 
+	"github.com/MAGeorg/shortener.git/internal/hash"
 	"github.com/MAGeorg/shortener.git/internal/models"
 	"github.com/MAGeorg/shortener.git/internal/storage"
-	"github.com/MAGeorg/shortener.git/internal/utils"
 )
 
 // структура, содержащая необходимы параметры для создания нового соркащенного URL.
@@ -24,11 +24,7 @@ type InputValueForWriteFile struct {
 
 // функция реализует бизнес логику обработки начального URL.
 func CreateShotURL(ctx context.Context, i *InputValueForWriteFile) (string, error) {
-	if !utils.CheckURL(i.URL) {
-		return "", fmt.Errorf("not valid url")
-	}
-
-	h := utils.GetHash(i.URL)
+	h := hash.GetHash(i.URL)
 	urlHash, err := i.Stor.CreateShotURL(ctx, i.URL, h)
 
 	if err != nil {
@@ -38,8 +34,8 @@ func CreateShotURL(ctx context.Context, i *InputValueForWriteFile) (string, erro
 }
 
 // функция реализует бизнес логику получения начального URL.
-func GetOriginURL(ctx context.Context, stor storage.Storage, hash string) (string, error) {
-	url, err := stor.GetOriginURL(ctx, hash)
+func GetOriginURL(ctx context.Context, stor storage.Storage, hashString string) (string, error) {
+	url, err := stor.GetOriginURL(ctx, hashString)
 	if err != nil {
 		return "", fmt.Errorf("error get value from storage: %w", err)
 	}
@@ -77,7 +73,7 @@ func CreateShotURLBatch(ctx context.Context, stor storage.Storage,
 
 	// заполняем сокращенный url и результат обработки.
 	for i := range d {
-		d[i].Hash = utils.GetHash(d[i].OriginURL)
+		d[i].Hash = hash.GetHash(d[i].OriginURL)
 		res = append(res, models.DataBatch{
 			CorrelationID: d[i].CorrelationID,
 			ShortURL:      fmt.Sprintf("%s/%d", base, d[i].Hash),

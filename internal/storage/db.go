@@ -89,7 +89,7 @@ func (s *StorageURLinDB) CreateShotURLBatch(ctx context.Context, d []models.Data
 // получение всех пар short_url - original_url.
 func (s *StorageURLinDB) GetAllURL(ctx context.Context, baseAddr string) ([]models.DataBatch, error) {
 	res, err := s.conn.QueryContext(ctx,
-		"SELECT * FROM shot_url")
+		"SELECT hash_value, origin_url FROM shot_url")
 	if err != nil || res.Err() != nil {
 		return nil, err
 	}
@@ -97,16 +97,21 @@ func (s *StorageURLinDB) GetAllURL(ctx context.Context, baseAddr string) ([]mode
 	defer res.Close()
 
 	r := []models.DataBatch{}
-	var i models.DataBatch
+	var (
+		hash    uint32
+		origURL string
+	)
+
 	for res.Next() {
-		err := res.Scan(&i)
+		err := res.Scan(&hash, &origURL)
+
 		if err != nil {
 			return nil, fmt.Errorf("error scan value from db: %w", err)
 		}
 
 		r = append(r, models.DataBatch{
-			ShortURL:  fmt.Sprintf("%s/%s", baseAddr, strconv.FormatUint(uint64(i.Hash), 10)),
-			OriginURL: i.OriginURL,
+			ShortURL:  fmt.Sprintf("%s/%s", baseAddr, strconv.FormatUint(uint64(hash), 10)),
+			OriginURL: origURL,
 		})
 	}
 

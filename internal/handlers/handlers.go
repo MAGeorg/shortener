@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -356,7 +355,7 @@ func (h *AppHandler) GetAllUserURL(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	ans, err := core.GetAllURL(ctx, h.a.StorageURL, h.a.BaseAddress, userID)
 	switch {
-	case errors.Is(err, fmt.Errorf("empty result")):
+	case errors.Is(err, customerr.ErrEmptyResult):
 		h.a.Logger.Infoln("empty result:", err.Error())
 		w.WriteHeader(http.StatusUnauthorized)
 		return

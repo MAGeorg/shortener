@@ -12,6 +12,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"go.uber.org/zap"
 
+	customerr "github.com/MAGeorg/shortener.git/internal/errors"
 	"github.com/MAGeorg/shortener.git/internal/hash"
 	"github.com/MAGeorg/shortener.git/internal/models"
 	"github.com/MAGeorg/shortener.git/internal/storage"
@@ -109,7 +110,7 @@ func GetAllURL(ctx context.Context, stor storage.Storage, base string, userID in
 		b, err := json.Marshal(res)
 		return b, err
 	}
-	return nil, fmt.Errorf("empty result")
+	return nil, customerr.ErrEmptyResult
 }
 
 // функция для конвертирования string слайса в uint32 слайс.

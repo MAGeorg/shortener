@@ -12,6 +12,10 @@ var ErrAccessDenied = errors.New("unique_violation")
 // выдавался JWT в cookie.
 var ErrUnauthrozedID = errors.New("unauthorized_id")
 
+// ErrEmptyResult ошибка используется при пустом результате операции получения
+// все сокращенных URL.
+var ErrEmptyResult = errors.New("empty_result")
+
 // ErrDeleteShotURL ошибка используется если идет обращение GET по значениям,
 // которые помечены как удаленные.
 var ErrDeleteShotURL = errors.New("deleted_shot_url")

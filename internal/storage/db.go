@@ -39,9 +39,9 @@ func (s *StorageURLinDB) CreateShotURL(ctx context.Context, url string, h uint32
 }
 
 // получение из БД изначального запроса по hash.
-func (s *StorageURLinDB) GetOriginURL(ctx context.Context, str string, userID int) (string, error) {
+func (s *StorageURLinDB) GetOriginURL(ctx context.Context, str string, _ int) (string, error) {
 	res, err := s.conn.QueryContext(ctx,
-		"SELECT origin_url, is_deleted FROM shot_url WHERE hash_value = $1 AND user_id = $2;", str, userID)
+		"SELECT origin_url, is_deleted FROM shot_url WHERE hash_value = $1;", str)
 	if err != nil || res.Err() != nil {
 		return "", err
 	}
@@ -50,7 +50,7 @@ func (s *StorageURLinDB) GetOriginURL(ctx context.Context, str string, userID in
 
 	var (
 		url string
-		del bool
+		del sql.NullBool
 	)
 
 	for res.Next() {
@@ -60,7 +60,7 @@ func (s *StorageURLinDB) GetOriginURL(ctx context.Context, str string, userID in
 		}
 	}
 
-	if del {
+	if del.Valid && del.Bool {
 		return url, customerr.ErrDeleteShotURL
 	}
 	return url, nil

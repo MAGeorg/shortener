@@ -194,7 +194,7 @@ func TestRestoreData(t *testing.T) {
 		asserts.Empty(err)
 
 		for _, w := range want {
-			v, err := storURL.GetOriginURL(ctx, w.hash)
+			v, err := storURL.GetOriginURL(ctx, w.hash, 0)
 			asserts.Empty(err)
 			asserts.Equal(w.wantURL, v)
 		}

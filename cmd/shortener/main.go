@@ -18,6 +18,8 @@ import (
 const (
 	// константа для считывания миграций, если используется чистый sql.
 	sourceMigration = "../../internal/storage/migration/postgres/001.init_schema.sql"
+	// версия БД для миграций.
+	versionDB = 2
 )
 
 func main() {
@@ -70,7 +72,7 @@ func main() {
 
 		// выполняем go-миграцию.
 		migrate := migration.Migration{Source: sourceMigration, Flag: "go"}
-		err = migrate.Up(conn)
+		err = migrate.Up(conn, versionDB)
 		if err != nil {
 			lg.Errorln("error execute migrate", err)
 		}

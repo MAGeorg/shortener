@@ -19,16 +19,16 @@ type Migration struct {
 }
 
 // Up runs an up migration.
-func (m *Migration) Up(db *sql.DB) error {
+func (m *Migration) Up(db *sql.DB, version int) error {
 	ctx := context.Background()
-	return m.UpContext(ctx, db)
+	return m.UpContext(ctx, db, version)
 }
 
 // UpContext runs an up migration.
-func (m *Migration) UpContext(ctx context.Context, db *sql.DB) error {
+func (m *Migration) UpContext(ctx context.Context, db *sql.DB, version int) error {
 	// проверка наличие схемы.
 	if res := CheckExistScheme(ctx, db); !res {
-		if err := m.run(ctx, db); err != nil {
+		if err := m.run(ctx, db, version); err != nil {
 			return err
 		}
 	}
@@ -36,20 +36,20 @@ func (m *Migration) UpContext(ctx context.Context, db *sql.DB) error {
 }
 
 // Down runs a down migration.
-func (m *Migration) Down(db *sql.DB) error {
+func (m *Migration) Down(db *sql.DB, version int) error {
 	ctx := context.Background()
-	return m.DownContext(ctx, db)
+	return m.DownContext(ctx, db, version)
 }
 
 // DownContext runs a down migration.
-func (m *Migration) DownContext(ctx context.Context, db *sql.DB) error {
-	if err := m.run(ctx, db); err != nil {
+func (m *Migration) DownContext(ctx context.Context, db *sql.DB, version int) error {
+	if err := m.run(ctx, db, version); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *Migration) run(ctx context.Context, db *sql.DB) error {
+func (m *Migration) run(ctx context.Context, db *sql.DB, version int) error {
 	switch m.Flag {
 	case "sql":
 		f, err := os.Open(m.Source)
@@ -75,12 +75,14 @@ func (m *Migration) run(ctx context.Context, db *sql.DB) error {
 		fmt.Printf("\nmigration execution time: %d ms\n", finish)
 
 	case "go":
-		queueUP := postgres.Up()
+		queueUP := postgres.Migration()
 
 		start := time.Now()
-		if err := runSQLMigration(ctx, db, queueUP); err != nil {
-			fmt.Printf("error run sql migration: %s", err.Error())
-			return fmt.Errorf("error up go-migration: failed to run SQL migration: %w", err)
+		for i := 1; i <= version; i++ {
+			if err := runSQLMigration(ctx, db, queueUP[i]); err != nil {
+				fmt.Printf("error run sql migration: %s", err.Error())
+				return fmt.Errorf("error up go-migration: failed to run SQL migration: %w", err)
+			}
 		}
 		finish := time.Since(start)
 

@@ -27,9 +27,9 @@ func NewStorageURLinDB(c *sql.DB) *StorageURLinDB {
 }
 
 // создание записи в БД с новым сокращенным URL.
-func (s *StorageURLinDB) CreateShotURL(ctx context.Context, url string, h uint32) (string, error) {
+func (s *StorageURLinDB) CreateShotURL(ctx context.Context, url string, h uint32, userID int) (string, error) {
 	_, err := s.conn.ExecContext(ctx,
-		"INSERT INTO shot_url (hash_value, origin_url) VALUES ($1,$2);", h, url)
+		"INSERT INTO shot_url (hash_value, origin_url, user_id) VALUES ($1,$2,$3);", h, url, userID)
 
 	// проверка на дубликат
 	if driverErr, ok := err.(*pgconn.PgError); ok && driverErr.Code == "23505" {
@@ -39,9 +39,9 @@ func (s *StorageURLinDB) CreateShotURL(ctx context.Context, url string, h uint32
 }
 
 // получение из БД изначального запроса по hash.
-func (s *StorageURLinDB) GetOriginURL(ctx context.Context, str string) (string, error) {
+func (s *StorageURLinDB) GetOriginURL(ctx context.Context, str string, userID int) (string, error) {
 	res, err := s.conn.QueryContext(ctx,
-		"SELECT origin_url FROM shot_url WHERE hash_value = $1;", str)
+		"SELECT origin_url FROM shot_url WHERE hash_value = $1 AND user_id = $2;", str, userID)
 	if err != nil || res.Err() != nil {
 		return "", err
 	}
@@ -60,7 +60,7 @@ func (s *StorageURLinDB) GetOriginURL(ctx context.Context, str string) (string, 
 }
 
 // добавление в БД значений пачкой.
-func (s *StorageURLinDB) CreateShotURLBatch(ctx context.Context, d []models.DataBatch) error {
+func (s *StorageURLinDB) CreateShotURLBatch(ctx context.Context, d []models.DataBatch, userID int) error {
 	// начинаем транзакцию.
 	tx, err := s.conn.Begin()
 	if err != nil {
@@ -70,7 +70,8 @@ func (s *StorageURLinDB) CreateShotURLBatch(ctx context.Context, d []models.Data
 	// выполняем запись.
 	for _, i := range d {
 		_, err := tx.ExecContext(ctx,
-			"INSERT INTO shot_url (hash_value, origin_url) VALUES ($1,$2);", i.Hash, i.OriginURL)
+			"INSERT INTO shot_url (hash_value, origin_url, user_id) VALUES ($1,$2,$3);",
+			i.Hash, i.OriginURL, userID)
 		if err != nil {
 			_ = tx.Rollback()
 			return err
@@ -87,9 +88,9 @@ func (s *StorageURLinDB) CreateShotURLBatch(ctx context.Context, d []models.Data
 }
 
 // получение всех пар short_url - original_url.
-func (s *StorageURLinDB) GetAllURL(ctx context.Context, baseAddr string) ([]models.DataBatch, error) {
+func (s *StorageURLinDB) GetAllURL(ctx context.Context, baseAddr string, userID int) ([]models.DataBatch, error) {
 	res, err := s.conn.QueryContext(ctx,
-		"SELECT hash_value, origin_url FROM shot_url")
+		"SELECT hash_value, origin_url FROM shot_url WHERE user_id = $1", userID)
 	if err != nil || res.Err() != nil {
 		return nil, err
 	}

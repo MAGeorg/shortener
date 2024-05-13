@@ -20,12 +20,13 @@ type InputValueForWriteFile struct {
 	Stor        storage.Storage
 	BaseAddress string
 	URL         string
+	UserID      int
 }
 
 // функция реализует бизнес логику обработки начального URL.
 func CreateShotURL(ctx context.Context, i *InputValueForWriteFile) (string, error) {
 	h := hash.GetHash(i.URL)
-	urlHash, err := i.Stor.CreateShotURL(ctx, i.URL, h)
+	urlHash, err := i.Stor.CreateShotURL(ctx, i.URL, h, i.UserID)
 
 	if err != nil {
 		return fmt.Sprintf("%s/%s", i.BaseAddress, urlHash), fmt.Errorf("error add url to storage: %w", err)
@@ -34,8 +35,8 @@ func CreateShotURL(ctx context.Context, i *InputValueForWriteFile) (string, erro
 }
 
 // функция реализует бизнес логику получения начального URL.
-func GetOriginURL(ctx context.Context, stor storage.Storage, hashString string) (string, error) {
-	url, err := stor.GetOriginURL(ctx, hashString)
+func GetOriginURL(ctx context.Context, stor storage.Storage, hashString string, userID int) (string, error) {
+	url, err := stor.GetOriginURL(ctx, hashString, userID)
 	if err != nil {
 		return "", fmt.Errorf("error get value from storage: %w", err)
 	}
@@ -68,7 +69,7 @@ func ConnectDB(dsn string) (*sql.DB, error) {
 
 // функция, реализующая бизнес логику обработки batch json.
 func CreateShotURLBatch(ctx context.Context, stor storage.Storage,
-	base string, d []models.DataBatch) ([]models.DataBatch, error) {
+	base string, d []models.DataBatch, userID int) ([]models.DataBatch, error) {
 	res := []models.DataBatch{}
 
 	// заполняем сокращенный url и результат обработки.
@@ -80,7 +81,7 @@ func CreateShotURLBatch(ctx context.Context, stor storage.Storage,
 		})
 	}
 
-	err := stor.CreateShotURLBatch(ctx, d)
+	err := stor.CreateShotURLBatch(ctx, d, userID)
 	if err != nil {
 		return res, err
 	}
@@ -89,8 +90,8 @@ func CreateShotURLBatch(ctx context.Context, stor storage.Storage,
 }
 
 // функция, реализующая бизнес-логику для получения всех значений short_url - original_url.
-func GetALLURL(ctx context.Context, stor storage.Storage, base string) ([]byte, error) {
-	res, err := stor.GetAllURL(ctx, base)
+func GetAllURL(ctx context.Context, stor storage.Storage, base string, userID int) ([]byte, error) {
+	res, err := stor.GetAllURL(ctx, base, userID)
 	if err != nil {
 		return nil, err
 	}

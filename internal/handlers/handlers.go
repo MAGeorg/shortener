@@ -30,7 +30,7 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 	jwtString := tokens.GetValueFromCookie(r, "jwt-token")
 
 	// проверка или получение нового jwt.
-	jwtString, err := h.a.Tokens.CheckToken(jwtString)
+	jwtString, userID, err := h.a.Tokens.CheckToken(jwtString)
 	switch {
 	case errors.Is(err, customerr.ErrUnauthrozedID):
 		w.WriteHeader(http.StatusUnauthorized)
@@ -48,9 +48,6 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: debug
-	fmt.Println(w.Header())
-
 	defer r.Body.Close()
 	urlStr, err := io.ReadAll(r.Body)
 
@@ -67,6 +64,7 @@ func (h *AppHandler) CreateHashURL(w http.ResponseWriter, r *http.Request) {
 			Stor:        h.a.StorageURL,
 			BaseAddress: h.a.BaseAddress,
 			URL:         string(urlStr),
+			UserID:      userID,
 		})
 
 	switch {
@@ -101,7 +99,7 @@ func (h *AppHandler) GetOriginURL(w http.ResponseWriter, r *http.Request) {
 	jwtString := tokens.GetValueFromCookie(r, "jwt-token")
 
 	// проверка или получение нового jwt.
-	jwtString, err := h.a.Tokens.CheckToken(jwtString)
+	jwtString, userID, err := h.a.Tokens.CheckToken(jwtString)
 	switch {
 	case errors.Is(err, customerr.ErrUnauthrozedID):
 		w.WriteHeader(http.StatusUnauthorized)
@@ -125,7 +123,7 @@ func (h *AppHandler) GetOriginURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := context.Background()
-	url, err := core.GetOriginURL(ctx, h.a.StorageURL, r.URL.String()[1:])
+	url, err := core.GetOriginURL(ctx, h.a.StorageURL, r.URL.String()[1:], userID)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -144,7 +142,7 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 	jwtString := tokens.GetValueFromCookie(r, "jwt-token")
 
 	// проверка или получение нового jwt.
-	jwtString, err := h.a.Tokens.CheckToken(jwtString)
+	jwtString, userID, err := h.a.Tokens.CheckToken(jwtString)
 	switch {
 	case errors.Is(err, customerr.ErrUnauthrozedID):
 		w.WriteHeader(http.StatusUnauthorized)
@@ -188,6 +186,7 @@ func (h *AppHandler) CreateHashURLJSON(w http.ResponseWriter, r *http.Request) {
 			Stor:        h.a.StorageURL,
 			BaseAddress: h.a.BaseAddress,
 			URL:         urlJSON.URL,
+			UserID:      userID,
 		})
 
 	switch {
@@ -224,7 +223,7 @@ func (h *AppHandler) PingDB(w http.ResponseWriter, r *http.Request) {
 	jwtString := tokens.GetValueFromCookie(r, "jwt-token")
 
 	// проверка или получение нового jwt.
-	jwtString, err := h.a.Tokens.CheckToken(jwtString)
+	jwtString, _, err := h.a.Tokens.CheckToken(jwtString)
 	switch {
 	case errors.Is(err, customerr.ErrUnauthrozedID):
 		w.WriteHeader(http.StatusUnauthorized)
@@ -259,7 +258,7 @@ func (h *AppHandler) CreateHashURLBatchJSON(w http.ResponseWriter, r *http.Reque
 	jwtString := tokens.GetValueFromCookie(r, "jwt-token")
 
 	// проверка или получение нового jwt.
-	jwtString, err := h.a.Tokens.CheckToken(jwtString)
+	jwtString, userID, err := h.a.Tokens.CheckToken(jwtString)
 	switch {
 	case errors.Is(err, customerr.ErrUnauthrozedID):
 		w.WriteHeader(http.StatusUnauthorized)
@@ -298,7 +297,7 @@ func (h *AppHandler) CreateHashURLBatchJSON(w http.ResponseWriter, r *http.Reque
 	}
 
 	ctx := context.Background()
-	res, err := core.CreateShotURLBatch(ctx, h.a.StorageURL, h.a.BaseAddress, batchJSON)
+	res, err := core.CreateShotURLBatch(ctx, h.a.StorageURL, h.a.BaseAddress, batchJSON, userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -330,7 +329,7 @@ func (h *AppHandler) GetAllUserURL(w http.ResponseWriter, r *http.Request) {
 	jwtString := tokens.GetValueFromCookie(r, "jwt-token")
 
 	// проверка или получение нового jwt.
-	jwtString, err := h.a.Tokens.CheckToken(jwtString)
+	jwtString, userID, err := h.a.Tokens.CheckToken(jwtString)
 	switch {
 	case errors.Is(err, customerr.ErrUnauthrozedID):
 		w.WriteHeader(http.StatusUnauthorized)
@@ -350,7 +349,7 @@ func (h *AppHandler) GetAllUserURL(w http.ResponseWriter, r *http.Request) {
 
 	// вызов функции бизнес-логики для получения списка всех сокращенны URL.
 	ctx := context.Background()
-	ans, err := core.GetALLURL(ctx, h.a.StorageURL, h.a.BaseAddress)
+	ans, err := core.GetAllURL(ctx, h.a.StorageURL, h.a.BaseAddress, userID)
 	switch {
 	case errors.Is(err, fmt.Errorf("empty result")):
 		h.a.Logger.Infoln("empty result:", err.Error())

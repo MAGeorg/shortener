@@ -7,12 +7,14 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/MAGeorg/shortener.git/internal/appdata"
 	"github.com/MAGeorg/shortener.git/internal/config"
 	"github.com/MAGeorg/shortener.git/internal/logger"
 	"github.com/MAGeorg/shortener.git/internal/models"
 	"github.com/MAGeorg/shortener.git/internal/storage"
+	"github.com/MAGeorg/shortener.git/internal/tokens"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -94,8 +96,15 @@ func TestCreateHashURL(t *testing.T) {
 	cfg := config.NewConfig()
 	config.Parse(cfg)
 
+	// инициализация структуры для хранения и обработки jwt.
+	token := tokens.NewTokensID(
+		"tmpseckey",
+		time.Hour*5,
+		lg,
+	)
+
 	// инициализация контекста без записи в файл
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, lg)
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, lg, token)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {
@@ -208,8 +217,15 @@ func TestGetOriginURL(t *testing.T) {
 	// инициализаниция конфига
 	cfg := config.NewConfig()
 
+	// инициализация структуры для хранения и обработки jwt.
+	token := tokens.NewTokensID(
+		"tmpseckey",
+		time.Hour*5,
+		lg,
+	)
+
 	// инициализация контекста без записи в файл
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, lg)
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, lg, token)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {
@@ -320,8 +336,15 @@ func TestCreateHashURLJSON(t *testing.T) {
 	// инициализаниция конфига
 	cfg := config.NewConfig()
 
+	// инициализация структуры для хранения и обработки jwt.
+	token := tokens.NewTokensID(
+		"tmpseckey",
+		time.Hour*5,
+		lg,
+	)
+
 	// инициализация контекста без записи в файл
-	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, lg)
+	appContext := appdata.NewAppData(cfg.BaseAddress, storURL, cfg.PostgreSQLDSN, lg, token)
 	h := AppHandler{appContext}
 
 	for _, test := range tests {

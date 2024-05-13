@@ -24,6 +24,8 @@ func RunServer(address string, a *appdata.AppData) error {
 		lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.CreateHashURLBatchJSON))))
 	r.Method("GET", "/{id}", lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.GetOriginURL))))
 	r.Method("GET", "/ping", lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.PingDB))))
+	r.Method("GET", "/api/user/urls",
+		lgMiddleware.LogMiddleware(middleware.GzipMiddleware(http.HandlerFunc(h.GetAllUserURL))))
 
 	a.Logger.Infof("Server run on %s address ...", address)
 	//nolint:gosec // no matter in this

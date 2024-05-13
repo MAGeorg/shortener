@@ -15,5 +15,8 @@ func Migration() map[int]string {
 		2: `
 			ALTER TABLE shot_url ADD user_id SERIAL;
 		`,
+		3: `
+			ALTER TABLE shot_url ADD is_deleted BOOLEAN;		
+		`,
 	}
 }

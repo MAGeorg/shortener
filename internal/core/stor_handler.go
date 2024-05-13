@@ -6,9 +6,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	// подключение драйвера PostgreSQL.
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"go.uber.org/zap"
 
 	"github.com/MAGeorg/shortener.git/internal/hash"
 	"github.com/MAGeorg/shortener.git/internal/models"
@@ -23,7 +25,17 @@ type InputValueForWriteFile struct {
 	UserID      int
 }
 
-// функция реализует бизнес логику обработки начального URL.
+// структура, содержащая в себе параметры для удаления batch URL.
+//
+//nolint:govet // FP
+type InputValueForDeleteBatch struct {
+	Stor   storage.Storage
+	Hashs  []string
+	UserID int
+	Logger *zap.SugaredLogger
+}
+
+// функция реализует бизнес-логику обработки начального URL.
 func CreateShotURL(ctx context.Context, i *InputValueForWriteFile) (string, error) {
 	h := hash.GetHash(i.URL)
 	urlHash, err := i.Stor.CreateShotURL(ctx, i.URL, h, i.UserID)
@@ -34,13 +46,10 @@ func CreateShotURL(ctx context.Context, i *InputValueForWriteFile) (string, erro
 	return fmt.Sprintf("%s/%s", i.BaseAddress, urlHash), nil
 }
 
-// функция реализует бизнес логику получения начального URL.
+// функция реализует бизнес-логику получения начального URL.
 func GetOriginURL(ctx context.Context, stor storage.Storage, hashString string, userID int) (string, error) {
 	url, err := stor.GetOriginURL(ctx, hashString, userID)
-	if err != nil {
-		return "", fmt.Errorf("error get value from storage: %w", err)
-	}
-	return url, nil
+	return url, err
 }
 
 // функция ping DB.
@@ -58,7 +67,7 @@ func PingDB(dsn string) error {
 	return nil
 }
 
-// функция реализует бизнес логику подключения к DB.
+// функция реализует бизнес-логику подключения к DB.
 func ConnectDB(dsn string) (*sql.DB, error) {
 	conn, err := sql.Open("pgx", dsn)
 	if err != nil {
@@ -67,7 +76,7 @@ func ConnectDB(dsn string) (*sql.DB, error) {
 	return conn, nil
 }
 
-// функция, реализующая бизнес логику обработки batch json.
+// функция, реализующая бизнес-логику обработки batch json.
 func CreateShotURLBatch(ctx context.Context, stor storage.Storage,
 	base string, d []models.DataBatch, userID int) ([]models.DataBatch, error) {
 	res := []models.DataBatch{}
@@ -101,4 +110,31 @@ func GetAllURL(ctx context.Context, stor storage.Storage, base string, userID in
 		return b, err
 	}
 	return nil, fmt.Errorf("empty result")
+}
+
+// функция для конвертирования string слайса в uint32 слайс.
+func convertListStringToListUint32(input []string) []uint32 {
+	res := make([]uint32, 0)
+	for _, i := range input {
+		if u32, err := strconv.ParseUint(i, 10, 32); err == nil {
+			res = append(res, uint32(u32))
+		}
+	}
+	return res
+}
+
+// фукнкиця, реализующая бизнес-логику для удаления всех значений shot_url по батчу хэшей.
+func DeleteBatchURLbyHash(ctx context.Context, input *InputValueForDeleteBatch) error {
+	values := convertListStringToListUint32(input.Hashs)
+
+	for _, i := range values {
+		go func(hash uint32) {
+			err := input.Stor.DeleteValueByHash(ctx, hash, input.UserID)
+			if err != nil {
+				input.Logger.Infof("error delete %d: %s", hash, err.Error())
+			}
+		}(i)
+	}
+
+	return nil
 }

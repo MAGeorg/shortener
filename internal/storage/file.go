@@ -91,6 +91,11 @@ func (s *StorageURLinFile) GetAllURL(_ context.Context, baseAddr string, _ int) 
 	return res, nil
 }
 
+// удаление по hash, для хранилища в файле заглушка.
+func (s *StorageURLinFile) DeleteValueByHash(context.Context, uint32, int) error {
+	return nil
+}
+
 // функция восстановления данных и записи в хранилище в памяти.
 func (s *StorageURLinFile) RestoreData(path string) error {
 	var lastID int

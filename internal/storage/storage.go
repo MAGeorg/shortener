@@ -16,4 +16,6 @@ type Storage interface {
 	CreateShotURLBatch(context.Context, []models.DataBatch, int) error
 	// input (context, baseAddress, userID).
 	GetAllURL(context.Context, string, int) ([]models.DataBatch, error)
+	// input (context, hash, userID).
+	DeleteValueByHash(context.Context, uint32, int) error
 }

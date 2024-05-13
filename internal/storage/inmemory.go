@@ -64,3 +64,8 @@ func (s *StorageURLinMemory) GetAllURL(_ context.Context, baseAddr string, _ int
 	}
 	return res, nil
 }
+
+// удаление по hash, для хранилища в памяти заглушка.
+func (s *StorageURLinMemory) DeleteValueByHash(context.Context, uint32, int) error {
+	return nil
+}

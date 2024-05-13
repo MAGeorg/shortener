@@ -124,7 +124,12 @@ func (h *AppHandler) GetOriginURL(w http.ResponseWriter, r *http.Request) {
 
 	ctx := context.Background()
 	url, err := core.GetOriginURL(ctx, h.a.StorageURL, r.URL.String()[1:], userID)
-	if err != nil {
+	switch {
+	case errors.Is(err, customerr.ErrDeleteShotURL):
+		w.WriteHeader(http.StatusGone)
+		return
+
+	case err != nil:
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -367,4 +372,57 @@ func (h *AppHandler) GetAllUserURL(w http.ResponseWriter, r *http.Request) {
 		// ошибка при записи ответа в Body, возращаем 500.
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+// удаление списка URL по полученному хэшам.
+func (h *AppHandler) DeleteBatch(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// получили jwt из cookie.
+	jwtString := tokens.GetValueFromCookie(r, "jwt-token")
+
+	// проверка или получение нового jwt.
+	jwtString, userID, err := h.a.Tokens.CheckToken(jwtString)
+	switch {
+	case errors.Is(err, customerr.ErrUnauthrozedID):
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	case err != nil:
+		h.a.Logger.Errorln("error create new or check jwt-token", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// высталение jwt в cookie.
+	if err := tokens.SetValueToCookie(w, "jwt-token", jwtString); err != nil {
+		h.a.Logger.Errorln("error set cookie: ", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// вызов функции бизнес-логики для получения списка всех сокращенны URL.
+	ctx := context.Background()
+	var vString []string
+	err = json.NewDecoder(r.Body).Decode(&vString)
+
+	if err != nil {
+		h.a.Logger.Errorln("error decode value from body: ", err)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	err = core.DeleteBatchURLbyHash(ctx,
+		&core.InputValueForDeleteBatch{
+			Stor:   h.a.StorageURL,
+			Hashs:  vString,
+			UserID: userID,
+			Logger: h.a.Logger,
+		},
+	)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
 }

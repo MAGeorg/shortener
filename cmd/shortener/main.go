@@ -19,7 +19,7 @@ const (
 	// константа для считывания миграций, если используется чистый sql.
 	sourceMigration = "../../internal/storage/migration/postgres/001.init_schema.sql"
 	// версия БД для миграций.
-	versionDB = 2
+	versionDB = 3
 )
 
 func main() {
